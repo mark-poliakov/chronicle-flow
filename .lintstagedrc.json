@@ -3,7 +3,6 @@
     "prettier --write"
   ],
   "server/**/*.{ts,js,json}": [
-    "prettier --write",
-    "eslint --fix"
+    "prettier --check"
   ]
 }
