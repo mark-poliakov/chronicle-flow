@@ -1,11 +1,25 @@
-# Nestjs specific
-/dist
-/node_modules
-/build
-/tmp
+# ОСНОВНІ ЗАЛЕЖНОСТІ ТА КЕШІ (для всього проєкту)
+node_modules/
+.pnpm-store/
 
-# Logs
-logs
+# БЕКЕНД (Nest.js)
+/server/dist/
+/server/build/
+/server/tmp/
+
+# ФРОНТЕНД (React + Vite)
+/client/dist/
+/client/build/
+/client/.vite/
+/client/.next/
+
+# ЗМІННІ СЕРЕДОВИЩА (Секрети)
+.env
+.env.*
+!.env.example
+ 
+# ЛОГИ ТА СИСТЕМНІ ФАЙЛИ
+logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -13,12 +27,14 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# dotenv environment variable files
-.env
-.env.development
-.env.test
-.env.production
+# ОС файли (macOS та Windows)
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# temp directory
-.temp
-.tmp
+# Редактори та IDE
+.vscode/
+.idea/
+*.swp
+*.swo
