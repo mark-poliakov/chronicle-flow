@@ -10,6 +10,12 @@
 - `/client` — Frontend застосунок
 - `/server` — Backend API
 - `/standards` — Архітектурна документація та угоди команди
+- `/docs` — Documentation
 
 ## Local Development
-Інструкції щодо запуску бекенду та фронтенду **(in progress...)**
+
+Інструкції щодо запуску бекенду та фронтенду
+
+- root folder: `npm install`
+- work with frontend: `cd client`, then `npm install`; to run client side locally - `npm run dev`
+- work with bacakend: `cd server`, then `npm install`; to run server side locally - `npm run start:dev`
