@@ -1,0 +1,50 @@
+@import '../../index.css';
+
+.formWrapper {
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
+
+  border: var(--border);
+  border-radius: var(--border-radius);
+  background-color: var(--background-secondary-color);
+  
+  position: relative;
+}
+
+.form {
+  height: var(--addEntryView-height);
+  background: none;
+  color: var(--font-color-primary);
+  border: none;
+  width: 100%;
+
+  resize: none;
+  padding: var(--container-padding);
+  position: relative;
+
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.5em;
+  letter-spacing: 0.05em;
+
+  scrollbar-color: var(--font-color-primary) transparent;
+  scrollbar-width: calc(var(--container-padding) / 2);
+  scrollbar-gutter: stable;
+}
+.form:focus-visible {
+  outline: none;
+}
+.buttonsWrapper {
+  background-color: var(--background-secondary-color);
+  width: 100%;
+  border-radius: var(--border-radius);
+
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 1rem;
+}
+.buttonWrapper {
+  padding-left: var(--container-padding);
+  padding-bottom: var(--container-padding);
+}

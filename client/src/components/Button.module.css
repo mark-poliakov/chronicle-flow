@@ -1,0 +1,25 @@
+@import '../index.css';
+@import '../App.css';
+
+.button {
+  background-color: var(--background-secondary-color);
+  color: var(--font-color-primary);
+  border: var(--border);
+  border-radius: var(--border-radius);
+  padding: var(--button-padding) var(--container-padding);
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: normal;
+  font-size: 1.5em;
+
+  cursor: pointer;
+  user-select: none;
+  transition: background-color linear var(--transition-time), 
+              color linear var(--transition-time);
+}
+.button:hover {
+  background-color: var(--background-primary-color);
+  color: var(--primary-color);
+}

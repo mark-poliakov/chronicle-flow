@@ -25,3 +25,15 @@
   - `fix/calendar-date-offset`
   - `chore/update-dependencies`
 - Злиття в `main` відбувається виключно через **Pull Request (PR)** після перевірки лінтерами.
+
+### Branch naming:
+
+`<type>/<short-description-kebab-case>`
+
+### Types (`<type>`):
+
+- `feature/` — developing a new feature.
+- `bugfix/` — fixing bugs.
+- `hotfix/` — urgent fixes in production environment.
+- `chore/` — dependencies updating, setting up CI/CD.
+- `docs/` — work with the documentation only.
