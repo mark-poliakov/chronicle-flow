@@ -1,12 +1,17 @@
 import './App.css';
+import { useAppSelector } from './app/hooks';
+import Button from './components/Button';
+import CalendarView from './features/diary/CalendarView';
+import EntryRevision from './features/diary/EntryRevision';
 
 function App() {
+  const entryRevisions = useAppSelector((state) => state.diary.entryRevisions);
 
   return (
     <>
       <header className='header'>
         <div className='logo-wrapper'>
-          <h1 className='logo-text'>Diary</h1>
+          <h1 className='logo-text'>Chronicle Flow</h1>
         </div>
         <div className='profile-wrapper'>
           <span className='profile-name'>Profile</span>
@@ -16,18 +21,20 @@ function App() {
       <div className='content-wrapper'>
         <aside className='asideLeft'>
           <div style={{textAlign: 'center'}}>Here will be the calendar later</div>
+          <CalendarView />
           <div className='divider'></div>
         </aside>
         <main className='entry-view'>
-          <div style={{ flex: 1 }}>
-            Hello World!
+          <div className='entryRevisions-wrapper'>
+            {entryRevisions.map((entryRevision) => <EntryRevision entryRevision={entryRevision} />)}
           </div>
           <div className='buttons-wrapper'>
-            <button>Edit entry</button>
-            <button>Add retroperspective</button>
+            <Button text='Add retrospective' action={() => {}}/>
           </div>
         </main>
-        <button className='add-entry-button'>+</button>
+        <div className='add-entry-wrapper'>
+          <Button text='+' action={() => {}} width='100%' height='100%'/>
+        </div>
       </div>
     </>
   );
