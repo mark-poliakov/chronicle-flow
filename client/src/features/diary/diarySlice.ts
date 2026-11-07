@@ -42,7 +42,6 @@ const diarySlice = createSlice({
       } else {
         state.entryRevisions = [];
       }
-
     },
     createEntryRevisionRetrospective: (state, action: PayloadAction<string>) => {
       if (!action.payload) {
@@ -70,9 +69,33 @@ const diarySlice = createSlice({
       }
       entryRevisions.push(newEntryRevision);
       state.entryRevisions.push(newEntryRevision);
+    },
+    createEntryRevisionInitial: (state, action: PayloadAction<string>) => {
+      if (!action.payload) {
+        return;
+      }
+      let entryId = 'init';
+      if (!state.entries[getLocalDateString()]) {
+        state.entries[getLocalDateString()] = ({
+          id: entryId,
+          targetDate: state.dateSelected,
+          createdAt: Date.now(),
+        })
+      } else {
+        entryId = state.entries[getLocalDateString()].id;
+      }
+      const newEntryRevision: EntryRevision = {
+        id: '100',
+        entryId,
+        content: action.payload,
+        revisionType: 'INITIAL',
+        createdAt: Date.now(),
+      }
+      entryRevisions.push(newEntryRevision);
+      state.entryRevisions.push(newEntryRevision);
     }
   }
 });
 
-export const { setDate, createEntryRevisionRetrospective } = diarySlice.actions;
+export const { setDate, createEntryRevisionRetrospective, createEntryRevisionInitial } = diarySlice.actions;
 export default diarySlice.reducer;

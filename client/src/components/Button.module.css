@@ -6,7 +6,7 @@
   color: var(--font-color-primary);
   border: var(--border);
   border-radius: var(--border-radius);
-  padding: var(--container-padding);
+  padding: var(--button-padding) var(--container-padding);
   
   display: flex;
   justify-content: center;
