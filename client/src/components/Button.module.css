@@ -27,3 +27,6 @@
   pointer-events: none;
   opacity: 0.3;
 }
+.button:focus-visible {
+  border-color: var(--color-primary);
+}

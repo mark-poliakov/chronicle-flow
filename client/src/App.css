@@ -101,6 +101,9 @@
   padding-top: var(--container-padding);
   overflow: hidden;
 }
+.button-wrapper {
+  margin: 0 var(--container-margin);
+}
 
 /* Add Entry Wrapper */
 .add-entry-wrapper {

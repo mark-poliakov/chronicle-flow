@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import './App.css';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import Button from './components/Button';
 import CalendarView from './features/diary/CalendarView';
 import EntryRevision from './features/diary/EntryRevision';
 import AddEntryRevisionForm from './features/diary/AddEntryRevisionForm';
-import { createRecord, setDate } from './features/diary/diarySlice';
+import { createRecord, deleteRecord, setDate, unselectRecord } from './features/diary/diarySlice';
 import { getLocalDateString } from './utils/utils';
 import RevisionHistory from './features/diary/RevisionHistory';
 
 function App() {
   const entryRevisions = useAppSelector((state) => state.diary.entryRevisions);
   const dateSelected = useAppSelector((state) => state.diary.dateSelected);
+  const recordSelectedId = useAppSelector((state) => state.diary.recordSelectedId);
   const [isFormShown, setIsFormShown] = useState<boolean>(false);
 
   const dispath = useAppDispatch();
@@ -20,6 +21,22 @@ function App() {
     dispath(createRecord({ content: text }));
     setIsFormShown(false);
   }
+  const handleEditRecord = (event: MouseEvent) => {
+    event.stopPropagation();
+    console.log('Editing clicked');
+  }
+  const handleDeleteRecord = () => {
+    dispath(deleteRecord({ id: recordSelectedId! }));
+    dispath(unselectRecord());
+  }
+
+  useEffect(() => {
+    const handleWindowClick = () => {dispath(unselectRecord())};
+    window.addEventListener('click', handleWindowClick)
+    return () => {
+      window.removeEventListener('click', handleWindowClick);
+    }
+  }, [])
 
   return (
     <>
@@ -41,7 +58,7 @@ function App() {
         </aside>
         <main className='entry-view'>
           <div className='entryRevisions-wrapper'>
-            {entryRevisions.map((entryRevision) => <EntryRevision entryRevision={entryRevision} />)}
+            {entryRevisions.map((entryRevision) => <EntryRevision entryRevision={entryRevision} key={entryRevision.id} />)}
           </div>
           {isFormShown && 
             <AddEntryRevisionForm 
@@ -50,7 +67,15 @@ function App() {
             />
           }
           <div className='buttons-wrapper'>
+            <div className='button-wrapper'>
               <Button text='Add text' action={() => {setIsFormShown(true)}} disabled={dateSelected === ''} />
+            </div>
+            <div className='button-wrapper'>
+              <Button text='Edit record' action={handleEditRecord} disabled={recordSelectedId === null} />
+            </div>
+            <div className='button-wrapper'>
+              <Button text='Delete record' action={handleDeleteRecord} disabled={recordSelectedId === null} />
+            </div>
           </div>
         </main>
         <div className='add-entry-wrapper' title='Write about today'>

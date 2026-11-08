@@ -3,13 +3,13 @@ import type { Entry, EntryRevision } from "../../types/types";
 import { getLocalDateString } from "../../utils/utils";
 
 // temporary static data
-const entries: Record<string, Entry> = {
-  '2026-11-06': { id: '1', targetDate: getLocalDateString(new Date(2026, 10, 6)), createdAt: Date.UTC(2026, 10, 6) },
-  '2026-11-05': { id: '2', targetDate: getLocalDateString(new Date(2026, 10, 5)), createdAt: Date.UTC(2026, 10, 5) },
-  '2026-11-07': { id: '3', targetDate: getLocalDateString(new Date(2026, 10, 7)), createdAt: Date.UTC(2026, 10, 7) },
-  '2026-11-08': { id: '4', targetDate: getLocalDateString(new Date(2026, 10, 7)), createdAt: Date.UTC(2026, 10, 7) },
+let entries: Record<string, Entry | null> = {
+  '2026-11-06': { id: '1', targetDate: '2026-11-06', createdAt: Date.UTC(2026, 10, 6) },
+  '2026-11-05': { id: '2', targetDate: '2026-11-05', createdAt: Date.UTC(2026, 10, 5) },
+  '2026-11-07': { id: '3', targetDate: '2026-11-07', createdAt: Date.UTC(2026, 10, 7) },
+  '2026-11-08': { id: '4', targetDate: '2026-11-08', createdAt: Date.UTC(2026, 10, 7) },
 }
-const entryRevisions: EntryRevision[] = [
+let entryRevisions: EntryRevision[] = [
   { id: '1', entryId: '3', content: 'This is an entry revision', createdAt: Date.UTC(2026, 10, 7), updatedAt: Date.UTC(2026, 10, 7) },
   { id: '2', entryId: '3', content: 'This is another entry revision', createdAt: Date.UTC(2026, 10, 7), updatedAt: Date.UTC(2026, 10, 7) },
 ];
@@ -17,14 +17,16 @@ const dateSelectedInitial = getLocalDateString();
 
 interface DiaryState {
   dateSelected: string,
-  entries: Record<string, Entry>,
+  recordSelectedId: string | null,
+  entries: Record<string, Entry | null>,
   entryRevisions: EntryRevision[],
 }
 
 const initialState: DiaryState = {
   dateSelected: dateSelectedInitial,
+  recordSelectedId: null,
   entries: entries,
-  entryRevisions: entries[dateSelectedInitial] ? entryRevisions.filter((entryRevision) => entryRevision.entryId === entries[dateSelectedInitial].id) : [],
+  entryRevisions: entries[dateSelectedInitial] !== null ? entryRevisions.filter((entryRevision) => entryRevision.entryId === entries[dateSelectedInitial]!.id) : [],
 };
 
 const diarySlice = createSlice({
@@ -44,6 +46,17 @@ const diarySlice = createSlice({
       } else {
         state.entryRevisions = [];
       }
+      state.recordSelectedId = null;
+    },
+    selectRecord: (state, action: PayloadAction<{id: string}>) => {
+      const record = state.entryRevisions.find((record) => record.id === action.payload.id);
+      if (!record) {
+        return;
+      }
+      state.recordSelectedId = record.id;
+    },
+    unselectRecord: (state) => {
+      state.recordSelectedId = null;
     },
     createRecord: (state, action: PayloadAction<{content: string}>) => {
       if (!action.payload) {
@@ -80,19 +93,19 @@ const diarySlice = createSlice({
       state.entryRevisions[recordIndex].content = action.payload.content;
     },
     deleteRecord: (state, action: PayloadAction<{id: string}>) => {
-      const recordIndex = state.entryRevisions.findIndex((record) => record.id === action.payload.id);
-      if (recordIndex === -1) {
+      const record = state.entryRevisions.find((record) => record.id === action.payload.id);
+      if (!record) {
         return;
       }
-      entryRevisions.splice(recordIndex, 1);
-      state.entryRevisions = entryRevisions.filter((entryRevision) => entryRevision.entryId === entries[state.dateSelected].id);
+      entryRevisions = entryRevisions.filter((recordItem) => recordItem.id !== action.payload.id);
+      state.entryRevisions = state.entryRevisions.filter((entryRevision) => entryRevision.id !== action.payload.id);
       if (state.entryRevisions.length < 1) {
-        delete entries[state.dateSelected];
-        state.entries = entries;
+        // entries[state.dateSelected] = null; // for some reason an error occures here
+        state.entries[state.dateSelected] = null;
       }
     },
   }
 });
 
-export const { setDate, createRecord, editRecord, deleteRecord } = diarySlice.actions;
+export const { setDate, selectRecord, unselectRecord, createRecord, editRecord, deleteRecord } = diarySlice.actions;
 export default diarySlice.reducer;

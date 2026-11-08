@@ -1,8 +1,9 @@
+import type { MouseEventHandler } from 'react';
 import styles from './Button.module.css'
 
 interface ButtonProps {
   text: string,
-  action: () => void,
+  action: MouseEventHandler,
   width?: string,
   height?: string,
   disabled?: boolean,
