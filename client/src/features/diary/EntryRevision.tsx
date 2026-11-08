@@ -6,9 +6,8 @@ interface EntryRevisionProps {
 }
 
 function EntryRevision({ entryRevision }: EntryRevisionProps) {
-  const className = entryRevision.revisionType === 'RETROSPECTIVE_EDIT' ? styles.retrospective : '';
   return (
-    <p className={className}>
+    <p className={styles.text}>
       {entryRevision.content}
     </p>
   )

@@ -5,8 +5,9 @@ import Button from './components/Button';
 import CalendarView from './features/diary/CalendarView';
 import EntryRevision from './features/diary/EntryRevision';
 import AddEntryRevisionForm from './features/diary/AddEntryRevisionForm';
-import { createEntryRevisionInitial, createEntryRevisionRetrospective, setDate } from './features/diary/diarySlice';
+import { createRecord, setDate } from './features/diary/diarySlice';
 import { getLocalDateString } from './utils/utils';
+import RevisionHistory from './features/diary/RevisionHistory';
 
 function App() {
   const entryRevisions = useAppSelector((state) => state.diary.entryRevisions);
@@ -15,24 +16,9 @@ function App() {
 
   const dispath = useAppDispatch();
 
-  const handleAddEntryRevisionInitial = (text: string) => {
-    dispath(createEntryRevisionInitial(text));
+  const handleCreateRecord = (text: string) => {
+    dispath(createRecord({ content: text }));
     setIsFormShown(false);
-  }
-  const handleAddRetrospective = (text: string) => {
-    dispath(createEntryRevisionRetrospective(text));
-    setIsFormShown(false);
-    console.log(entryRevisions);
-  }
-  const [handlePublish, setHandlePublish] = useState<(text: string) => void>(() => handleAddEntryRevisionInitial);
-  
-  const handleEntryRevisionInitial = () => {
-    setHandlePublish(() => handleAddEntryRevisionInitial);
-    setIsFormShown(true);
-  }
-  const handleRetrospective = () => {
-    setHandlePublish(() => handleAddRetrospective);
-    setIsFormShown(true);
   }
 
   return (
@@ -51,6 +37,7 @@ function App() {
           <div style={{textAlign: 'center'}}>Here will be the calendar later</div>
           <CalendarView />
           <div className='divider'></div>
+          <RevisionHistory />
         </aside>
         <main className='entry-view'>
           <div className='entryRevisions-wrapper'>
@@ -59,30 +46,24 @@ function App() {
           {isFormShown && 
             <AddEntryRevisionForm 
               handleClose={() => {setIsFormShown(false)}}
-              handlePublish={handlePublish}
+              handlePublish={handleCreateRecord}
             />
           }
           <div className='buttons-wrapper'>
-            {getLocalDateString() === dateSelected && entryRevisions.length < 1 ? (
-              <Button text='Add an entry' action={handleEntryRevisionInitial} />
-            ) : (
-              <Button text='Add retrospective' action={handleRetrospective} />
-            )}
+              <Button text='Add text' action={() => {setIsFormShown(true)}} disabled={dateSelected === ''} />
           </div>
         </main>
-        <div className='add-entry-wrapper'>
+        <div className='add-entry-wrapper' title='Write about today'>
           <Button 
             text='+' 
             action={() => {
-              dispath(setDate(getLocalDateString()));
-              if (entryRevisions.length > 0) {
-                handleRetrospective();
-              } else {
-                handleEntryRevisionInitial();
-              }
+              dispath(setDate({ dateString: getLocalDateString() }));
+              setIsFormShown(true);
             }}
             width='100%'
-            height='100%' />
+            height='100%'
+            disabled={dateSelected === ''}
+          />
         </div>
       </div>
     </>

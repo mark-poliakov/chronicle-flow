@@ -5,14 +5,16 @@ interface ButtonProps {
   action: () => void,
   width?: string,
   height?: string,
+  disabled?: boolean,
 }
 
-function Button({ text, action, width = 'auto', height = 'auto' }: ButtonProps) {
+function Button({ text, action, width = 'auto', height = 'auto', disabled = false }: ButtonProps) {
   return (
     <button
       className={styles.button}
       onClick={action}
       style={{ width, height }}
+      disabled={disabled}
     >
       {text}
     </button>

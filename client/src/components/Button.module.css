@@ -23,3 +23,7 @@
   background-color: var(--background-primary-color);
   color: var(--primary-color);
 }
+.button:disabled {
+  pointer-events: none;
+  opacity: 0.3;
+}

@@ -15,7 +15,7 @@ function CalendarView() {
   const handleDateChange = (event: BaseSyntheticEvent) => {
     const newDate = event.target.value;
     setDateSelected(newDate);
-    dispatch(setDate(newDate));
+    dispatch(setDate({ dateString: newDate }));
   }
   
   return (

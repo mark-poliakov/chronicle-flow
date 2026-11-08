@@ -1,4 +1,4 @@
-import { useState, type BaseSyntheticEvent } from 'react';
+import { useState, type BaseSyntheticEvent, type KeyboardEvent } from 'react';
 import styles from './AddEntryRevisionForm.module.css';
 import Button from '../../components/Button';
 
@@ -13,10 +13,28 @@ function AddEntryRevisionForm ({ handleClose, handlePublish }: AddEntryRevisionF
   const handleTextChange = (event: BaseSyntheticEvent) => {
     setText(event.target.value);
   };
+  const handleKeyPress = (event: KeyboardEvent) => {
+    switch (event.key) {
+      case 'Enter':
+        handlePublish(text);
+        break;
+      case 'Escape':
+        handleClose();
+        break;
+      default:
+    }
+  };
 
   return (
     <div className={styles.formWrapper}>
-      <textarea className={styles.form} placeholder='How did your day go?..' value={text} onChange={handleTextChange}></textarea>
+      <textarea 
+        className={styles.form}
+        placeholder='How did your day go?..'
+        autoFocus={true}
+        value={text}
+        onChange={handleTextChange}
+        onKeyDown={handleKeyPress}
+      ></textarea>
       <div className={styles.buttonsWrapper}>
         <div className={styles.buttonWrapper}>
           <Button text='Publish' action={() => {handlePublish(text)}}/>
