@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service.js";
-import { Entry, EntryRevision } from "../generated/prisma/client.js";
+import { UpdateRecordDto } from "./dto/update-record.dto.js";
+import { CreateRecordDto } from "./dto/create-record.dto.js";
 
 @Injectable()
 export class DiaryService {
@@ -14,43 +15,44 @@ export class DiaryService {
   }
 
   findAllEntryRevisions(targetDate: string, userId: string) {
+    targetDate = new Date(targetDate).toISOString();
     return this.prisma.entryRevision.findMany({
       where: {
         entry: {
-          where: { targetDate }
+          targetDate,
+          userId,
         },
-        userId
       },
       orderBy: { createdAt: 'asc' },
     });
   }
 
-  async create(targetDate: string, content: string, userId: string) {
-    const date = new Date(targetDate);
+  async create(dto: CreateRecordDto, userId: string) {
+    const date = new Date(dto.targetDate).toISOString();
     const entry = await this.prisma.entry.findFirst({ where: { userId, targetDate: date }})
     let entryId;
     if (!entry) {
-      entryId = (await this.prisma.entry.create({ data: { userId, targetDate } })).id;
+      entryId = (await this.prisma.entry.create({ data: { userId, targetDate: date } })).id;
     } else {
       entryId = entry!.id;
     }
 
-    return this.prisma.entryRevision.create({ data: { content, entryId } });
+    return this.prisma.entryRevision.create({ data: { content: dto.content, entryId } });
   }
 
-  async update(id: string, data: { content: string }, userId: string) {
+  async update(id: string, dto: UpdateRecordDto, userId: string) {
     const entryRevision = await this.prisma.entryRevision.findUnique({
       where: {
         id,
         entry: {
-          where: { userId },
+          userId,
         },
       },
     });
     if (!entryRevision) {
       throw new NotFoundException(`EntryRevision ${id} not found`);
     }
-    return this.prisma.entryRevision.update({ where: { id }, data });
+    return this.prisma.entryRevision.update({ where: { id }, data: dto });
   }
 
   async remove(id: string, userId: string) {
@@ -58,7 +60,7 @@ export class DiaryService {
       where: {
         id,
         entry: {
-          where: { userId },
+          userId,
         },
       },
     });

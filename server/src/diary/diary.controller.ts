@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { DiaryService } from "./diary.service.js";
-import { CurrentUser } from "../decorators/current-user.decorator.js";
+import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
 import { CreateRecordDto } from "./dto/create-record.dto.js";
 import { UpdateRecordDto } from "./dto/update-record.dto.js";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard.js";
 
 @Controller('diary')
+@UseGuards(JwtAuthGuard)
 export class DiaryController {
   constructor (private diary: DiaryService) {}
 
@@ -20,12 +22,12 @@ export class DiaryController {
 
   @Post()
   create(@Body() dto: CreateRecordDto, @CurrentUser() user: { id: string }) {
-    return this.diary.create(dto.targetDate, dto.content, user.id);
+    return this.diary.create(dto, user.id);
   }
 
-  @Patch(':targetDate')
-  update(@Param('targetDate') targetDate: string, @Body() dto: UpdateRecordDto, @CurrentUser() user: { id: string }) {
-    return this.diary.create(targetDate, dto.content, user.id);
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateRecordDto, @CurrentUser() user: { id: string }) {
+    return this.diary.update(id, dto, user.id);
   }
 
   @Delete(':id')
