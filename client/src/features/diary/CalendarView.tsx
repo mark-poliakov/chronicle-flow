@@ -1,6 +1,6 @@
 import { useEffect, useState, type BaseSyntheticEvent } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { setDate } from "./diarySlice";
+import { getEntries, setDate } from "./diarySlice";
 
 function CalendarView() {
   const dateSelectedState = useAppSelector((state) => state.diary.dateSelected);
@@ -11,6 +11,10 @@ function CalendarView() {
   }, [dateSelectedState]);
   
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(getEntries());
+  }, []);
 
   const handleDateChange = (event: BaseSyntheticEvent) => {
     const newDate = event.target.value;

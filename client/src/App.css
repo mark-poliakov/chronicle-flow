@@ -98,11 +98,10 @@
   flex-flow: row wrap;
   margin-top: var(--container-margin);
   border-top: var(--border);
-  padding-top: var(--container-padding);
   overflow: hidden;
 }
 .button-wrapper {
-  margin: 0 var(--container-margin);
+  margin: var(--container-padding) var(--container-margin) 0;
 }
 
 /* Add Entry Wrapper */

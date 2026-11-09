@@ -1,32 +1,54 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, isAnyOf, type PayloadAction } from "@reduxjs/toolkit";
 import type { Entry, EntryRevision } from "../../types/types";
 import { getLocalDateString } from "../../utils/utils";
-
-// temporary static data
-let entries: Record<string, Entry | null> = {
-  '2026-11-06': { id: '1', targetDate: '2026-11-06', createdAt: Date.UTC(2026, 10, 6) },
-  '2026-11-05': { id: '2', targetDate: '2026-11-05', createdAt: Date.UTC(2026, 10, 5) },
-  '2026-11-07': { id: '3', targetDate: '2026-11-07', createdAt: Date.UTC(2026, 10, 7) },
-  '2026-11-08': { id: '4', targetDate: '2026-11-08', createdAt: Date.UTC(2026, 10, 7) },
-}
-let entryRevisions: EntryRevision[] = [
-  { id: '1', entryId: '3', content: 'This is an entry revision', createdAt: Date.UTC(2026, 10, 7), updatedAt: Date.UTC(2026, 10, 7) },
-  { id: '2', entryId: '3', content: 'This is another entry revision', createdAt: Date.UTC(2026, 10, 7), updatedAt: Date.UTC(2026, 10, 7) },
-];
-const dateSelectedInitial = getLocalDateString();
+import { http } from "../../app/api/http";
 
 interface DiaryState {
   dateSelected: string,
-  recordSelectedId: string | null,
   entries: Record<string, Entry | null>,
   entryRevisions: EntryRevision[],
+  recordSelectedId: string | null,
+  isRecordBeingEdited: boolean,
+  status: 'idle' | 'loading' | 'suceeded' | 'failed',
+  error: string | null,
 }
 
+export const getEntries = createAsyncThunk('diary/getEntries', () => {
+  return http<Entry[]>('/diary/entries');
+});
+
+export const getRecords = createAsyncThunk('diary/getRecords', (targetDate: string) => {
+  return http<EntryRevision[]>(`/diary/records/${targetDate}`);
+});
+
+export const createRecord = createAsyncThunk('diary/createRecord', (data: { targetDate: string, content: string }) => {
+  return http<EntryRevision>('/diary', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+});
+
+export const editRecord = createAsyncThunk('diary/editRecord', ({ recordId, data }: { recordId: string, data: { content: string } }) => {
+  return http<EntryRevision>(`/diary/${recordId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+});
+
+export const deleteRecord = createAsyncThunk('diary/deleteRecord', (recordId: string) => {
+  return http<void>(`/diary/${recordId}`, {
+    method: 'DELETE',
+  });
+});
+
 const initialState: DiaryState = {
-  dateSelected: dateSelectedInitial,
+  dateSelected: getLocalDateString(),
+  entries: {},
+  entryRevisions: [],
   recordSelectedId: null,
-  entries: entries,
-  entryRevisions: entries[dateSelectedInitial] ? entryRevisions.filter((entryRevision) => entryRevision.entryId === entries[dateSelectedInitial]!.id) : [],
+  isRecordBeingEdited: false,
+  status: 'idle',
+  error: null,
 };
 
 const diarySlice = createSlice({
@@ -38,15 +60,12 @@ const diarySlice = createSlice({
         return;
       }
       state.dateSelected = action.payload.dateString;
-      console.log(state.dateSelected);
-      console.log(entries);
+      state.recordSelectedId = null;
+
       const existingEntry = state.entries[action.payload.dateString];
       if (existingEntry) {
-        state.entryRevisions = entryRevisions.filter((entryRevision) => entryRevision.entryId === existingEntry.id);
-      } else {
-        state.entryRevisions = [];
+        getRecords(action.payload.dateString);
       }
-      state.recordSelectedId = null;
     },
     selectRecord: (state, action: PayloadAction<{id: string}>) => {
       const record = state.entryRevisions.find((record) => record.id === action.payload.id);
@@ -54,58 +73,77 @@ const diarySlice = createSlice({
         return;
       }
       state.recordSelectedId = record.id;
+
+      state.isRecordBeingEdited = false;
     },
     unselectRecord: (state) => {
       state.recordSelectedId = null;
-    },
-    createRecord: (state, action: PayloadAction<{content: string}>) => {
-      if (!action.payload) {
-        return;
-      }
-      const existingEntry = state.entries[state.dateSelected];
-      let entryId;
-      if (!existingEntry) {
-        entryId = Date.now().toString();
-        state.entries[getLocalDateString()] = ({
-          id: entryId,
-          targetDate: state.dateSelected,
-          createdAt: Date.now(),
-        }) 
-      } else {
-        entryId = existingEntry.id;
-      }
 
-      const newEntryRevision: EntryRevision = {
-        id: Date.now().toString(),
-        entryId,
-        content: action.payload.content,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }
-      entryRevisions.push(newEntryRevision);
-      state.entryRevisions.push(newEntryRevision);
+      state.isRecordBeingEdited = false;
     },
-    editRecord: (state, action: PayloadAction<{id: string, content: string}>) => {
-      const recordIndex = state.entryRevisions.findIndex((record) => record.id === action.payload.id);
-      if (recordIndex === -1) {
-        return;
-      }
-      state.entryRevisions[recordIndex].content = action.payload.content;
+    beginEditingRecord: (state) => {
+      state.isRecordBeingEdited = true;
     },
-    deleteRecord: (state, action: PayloadAction<{id: string}>) => {
-      const record = state.entryRevisions.find((record) => record.id === action.payload.id);
-      if (!record) {
-        return;
-      }
-      entryRevisions = entryRevisions.filter((recordItem) => recordItem.id !== action.payload.id);
-      state.entryRevisions = state.entryRevisions.filter((entryRevision) => entryRevision.id !== action.payload.id);
-      if (state.entryRevisions.length < 1) {
-        // entries[state.dateSelected] = null; // for some reason an error occures here
-        state.entries[state.dateSelected] = null;
-      }
+    endEditingRecord: (state) => {
+      state.isRecordBeingEdited = false;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(getEntries.fulfilled, (state, action) => {
+        for(let i = 0; i < action.payload.length; i++) {
+          state.entries[action.payload[i].targetDate] = { 
+            id: action.payload[i].id,
+            targetDate: action.payload[i].targetDate,
+            createdAt: action.payload[i].createdAt,
+            updatedAt: action.payload[i].updatedAt,
+          };
+        }
+      })
+      .addCase(getRecords.fulfilled, (state, action) => {
+        state.entryRevisions = action.payload;
+      })
+      .addCase(createRecord.fulfilled, (state, action) => {
+        state.entryRevisions = [...state.entryRevisions, action.payload];
+        state.entries[action.meta.arg.targetDate] = { 
+          id: action.payload.entryId,
+          targetDate: action.meta.arg.targetDate,
+          createdAt: action.payload.createdAt,
+          updatedAt: action.payload.updatedAt,
+        };
+      })
+      .addCase(editRecord.fulfilled, (state, action) => {
+        const recordIndex = state.entryRevisions.findIndex((record) => record.id === action.payload.id);
+        if (recordIndex !== -1) {
+          state.entryRevisions[recordIndex] = action.payload;
+          console.warn(`Record ${action.payload.id} did not exist`);
+        }
+      })
+      .addCase(deleteRecord.fulfilled, (state, action) => {
+        state.entryRevisions = state.entryRevisions.filter((record) => record.id !== action.meta.arg);
+      })
+      .addMatcher(
+        isAnyOf(
+          getEntries.fulfilled, getRecords.fulfilled, createRecord.fulfilled, editRecord.fulfilled, deleteRecord.fulfilled,
+        ),
+        (state) => { state.status = 'suceeded' }
+      )
+
+      .addMatcher(
+        isAnyOf(
+          getEntries.pending, getRecords.pending, createRecord.pending, editRecord.pending, deleteRecord.pending,
+        ),
+        (state) => { state.status = 'loading'; state.error = null }
+      )
+
+      .addMatcher(
+        isAnyOf(
+          getEntries.rejected, getRecords.rejected, createRecord.rejected, editRecord.rejected, deleteRecord.rejected,
+        ),
+        (state, action) => { state.status = 'failed'; state.error = action.error.message ?? 'Request failed' }
+      )
   }
 });
 
-export const { setDate, selectRecord, unselectRecord, createRecord, editRecord, deleteRecord } = diarySlice.actions;
+export const { setDate, selectRecord, unselectRecord, beginEditingRecord, endEditingRecord } = diarySlice.actions;
 export default diarySlice.reducer;

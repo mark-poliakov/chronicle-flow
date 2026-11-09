@@ -12,6 +12,7 @@ interface EntryRevisionProps {
 function EntryRevision({ entryRevision }: EntryRevisionProps) {
   const selectedRecordId = useAppSelector((state) => state.diary.recordSelectedId);
   const isSelected = selectedRecordId === entryRevision.id;
+  const isRecordBeingEdited = useAppSelector((state) => state.diary.isRecordBeingEdited);
   const containerStyle = `${styles.container} ${isSelected ? styles.selected : ''}`;
 
   const dispatch = useAppDispatch();
@@ -28,10 +29,21 @@ function EntryRevision({ entryRevision }: EntryRevisionProps) {
 
   return (
     <output className={containerStyle} tabIndex={0} onFocus={selectThisRecord} onClick={handleClick} id={entryRevision.id}>
-      <span className={styles.timeMarker}>{ConvertTimeToDate(entryRevision.createdAt)}</span>
-      <p className={styles.text}>
-        {entryRevision.content}
-      </p>
+      <span className={styles.timeMarker}>
+        {ConvertTimeToDate(entryRevision.createdAt)}
+        {entryRevision.createdAt === entryRevision.updatedAt ? 
+          ''
+          :
+          <span className={styles.editTimeMarker}>{`(Edited ${ConvertTimeToDate(entryRevision.updatedAt)})`}</span> 
+        }
+      </span>
+      {isSelected && isRecordBeingEdited ? (
+        <p>Being edited...</p>
+      ) : (
+        <p className={styles.text}>
+          {entryRevision.content}
+        </p>
+      )}
     </output>
   )
 }

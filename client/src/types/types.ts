@@ -2,6 +2,7 @@ export type Entry = {
   id: string,
   targetDate: string,
   createdAt: EpochTimeStamp,
+  updatedAt: EpochTimeStamp,
 }
 
 export type EntryRevision = {

@@ -39,6 +39,14 @@ export class AuthService {
     return this.signToken(user.id, user.email);
   }
 
+  async getMe (userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    return user;
+  }
+
   async signToken (userId: string, email: string) {
     const payload = { sub: userId, email };
     return { accessToken: this.jwt.sign(payload, { secret: process.env.JWT_SECRET }) };

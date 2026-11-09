@@ -1,10 +1,19 @@
-import { useAppSelector } from '../../app/hooks';
+import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { ConvertTimeToDate } from '../../utils/utils';
 import styles from './RevisionHistory.module.css';
+import { getRecords } from './diarySlice';
 
 function RevisionHistory () {
   const entryRevisions = useAppSelector((state) => state.diary.entryRevisions);
   const recordSelectedId = useAppSelector((state) => state.diary.recordSelectedId);
+
+  const dispatch = useAppDispatch();
+  const currentDate = useAppSelector((state) => state.diary.dateSelected);
+
+  useEffect(() => {
+    dispatch(getRecords(currentDate));
+  }, []);
 
   return (
     <ul className={styles.container}>

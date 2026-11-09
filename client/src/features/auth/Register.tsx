@@ -1,4 +1,4 @@
-import type { SubmitEvent, SubmitEventHandler } from 'react';
+import { useState, type SubmitEvent, type SubmitEventHandler } from 'react';
 import styles from './LoginRegister.module.css';
 import { useAppDispatch } from '../../app/hooks';
 import { logIn } from './AuthSlice';
@@ -9,10 +9,13 @@ interface RegisterProps {
 
 function Register({ handleLogin }: RegisterProps) {
   const dispatch = useAppDispatch();
+
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   
   const handleSubmit: SubmitEventHandler = (event: SubmitEvent) => {
     event.preventDefault();
-    dispatch(logIn());
+    dispatch(logIn({ email, password }));
   } 
 
   return (
@@ -21,11 +24,21 @@ function Register({ handleLogin }: RegisterProps) {
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.fieldWrapper}>
           <label htmlFor='email'>Email:</label>
-          <input type='email' id='email'></input>
+          <input
+            type='email'
+            id='email'
+            value={email}
+            onChange={(event) => {setEmail(event.target.value)}}
+          ></input>
         </div>
         <div className={styles.fieldWrapper}>
           <label htmlFor='password'>Password:</label>
-          <input type='password' id='password'></input>
+          <input
+            type='password'
+            id='password'
+            value={password}
+            onChange={(event) => {setPassword(event.target.value)}}
+          ></input>
         </div>
         <div className={styles.fieldWrapper}>
           <label htmlFor='repeatPassword'>Repeat Password:</label>

@@ -32,12 +32,12 @@
 }
 .fieldWrapper input {
   padding: 0.5rem 1rem;
-  font-size: 1.6rem;
   border-radius: var(--border-radius);
   border: var(--border);
   color: var(--font-color-primary);
   background-color: var(--background-secondary-color);
   margin-left: var(--container-margin);
+  min-width: 20rem;
 }
 .fieldWrapper input:hover,
 .fieldWrapper input:focus-visible {

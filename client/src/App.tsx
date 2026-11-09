@@ -5,7 +5,7 @@ import Button from './components/Button';
 import CalendarView from './features/diary/CalendarView';
 import EntryRevision from './features/diary/EntryRevision';
 import AddEntryRevisionForm from './features/diary/AddEntryRevisionForm';
-import { createRecord, deleteRecord, setDate, unselectRecord } from './features/diary/diarySlice';
+import { beginEditingRecord, createRecord, deleteRecord, setDate, unselectRecord } from './features/diary/diarySlice';
 import { getLocalDateString } from './utils/utils';
 import RevisionHistory from './features/diary/RevisionHistory';
 import AuthScreen from './features/auth/AuthScreen';
@@ -16,30 +16,36 @@ function App() {
   const entryRevisions = useAppSelector((state) => state.diary.entryRevisions);
   const dateSelected = useAppSelector((state) => state.diary.dateSelected);
   const recordSelectedId = useAppSelector((state) => state.diary.recordSelectedId);
+
+  const userEmail = useAppSelector((state) => state.auth.email);
+  
   const [isFormShown, setIsFormShown] = useState<boolean>(false);
 
   const dispath = useAppDispatch();
 
   const handleCreateRecord = (text: string) => {
-    dispath(createRecord({ content: text }));
+    dispath(createRecord({ targetDate: dateSelected, content: text }));
     setIsFormShown(false);
   }
-  const handleEditRecord = (event: MouseEvent) => {
-    event.stopPropagation();
-    console.log('Editing clicked');
-  }
-  const handleDeleteRecord = () => {
-    dispath(deleteRecord({ id: recordSelectedId! }));
-    dispath(unselectRecord());
-  }
 
+  const handleWindowClick = () => {dispath(unselectRecord())};
   useEffect(() => {
-    const handleWindowClick = () => {dispath(unselectRecord())};
-    window.addEventListener('click', handleWindowClick)
+    window.onclick = handleWindowClick;
     return () => {
-      window.removeEventListener('click', handleWindowClick);
+      window.onclick = null;
     }
   }, [])
+
+  const handleEditRecord = (event: MouseEvent) => {
+    event.stopPropagation();
+    // window.onclick = null;
+    dispath(beginEditingRecord());
+  }
+  
+  const handleDeleteRecord = () => {
+    dispath(deleteRecord(recordSelectedId!));
+    dispath(unselectRecord());
+  }
 
   return isLoggedIn ? (
     <>
@@ -48,7 +54,7 @@ function App() {
           <h1 className='logo-text'>Chronicle Flow</h1>
         </div>
         <div className='profile-wrapper'>
-          <span className='profile-name'>Profile</span>
+          <span className='profile-name'>{userEmail ?? 'Profile'}</span>
           <div className='profile-image-wrapper'></div>
         </div>
       </header>
