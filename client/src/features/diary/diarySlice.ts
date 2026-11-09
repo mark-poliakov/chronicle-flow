@@ -26,7 +26,7 @@ const initialState: DiaryState = {
   dateSelected: dateSelectedInitial,
   recordSelectedId: null,
   entries: entries,
-  entryRevisions: entries[dateSelectedInitial] !== null ? entryRevisions.filter((entryRevision) => entryRevision.entryId === entries[dateSelectedInitial]!.id) : [],
+  entryRevisions: entries[dateSelectedInitial] ? entryRevisions.filter((entryRevision) => entryRevision.entryId === entries[dateSelectedInitial]!.id) : [],
 };
 
 const diarySlice = createSlice({

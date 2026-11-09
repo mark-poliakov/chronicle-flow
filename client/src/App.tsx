@@ -8,8 +8,11 @@ import AddEntryRevisionForm from './features/diary/AddEntryRevisionForm';
 import { createRecord, deleteRecord, setDate, unselectRecord } from './features/diary/diarySlice';
 import { getLocalDateString } from './utils/utils';
 import RevisionHistory from './features/diary/RevisionHistory';
+import AuthScreen from './features/auth/AuthScreen';
 
 function App() {
+  const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+
   const entryRevisions = useAppSelector((state) => state.diary.entryRevisions);
   const dateSelected = useAppSelector((state) => state.diary.dateSelected);
   const recordSelectedId = useAppSelector((state) => state.diary.recordSelectedId);
@@ -38,7 +41,7 @@ function App() {
     }
   }, [])
 
-  return (
+  return isLoggedIn ? (
     <>
       <header className='header'>
         <div className='logo-wrapper'>
@@ -92,6 +95,8 @@ function App() {
         </div>
       </div>
     </>
+  ) : (
+    <AuthScreen />
   );
 }
 
