@@ -64,8 +64,6 @@ const diarySlice = createSlice({
 
       const existingEntry = state.entries[action.payload.dateString];
       if (existingEntry) {
-        getRecords(action.payload.dateString);
-      } else {
         state.entryRevisions = [];
       }
     },

@@ -3,7 +3,6 @@ export const TOKEN_LOCAL_STORAGE_NAME = 'v1_chronicleFlow_token';
 
 export async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const token = localStorage.getItem(TOKEN_LOCAL_STORAGE_NAME);
-  console.log(init?.body);
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: {
