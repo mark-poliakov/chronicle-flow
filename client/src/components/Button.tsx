@@ -1,23 +1,19 @@
-import type { MouseEventHandler } from 'react';
 import styles from './Button.module.css'
+import type { ButtonParameters } from '../types/types';
 
 interface ButtonProps {
-  text: string,
-  action: MouseEventHandler,
-  width?: string,
-  height?: string,
-  disabled?: boolean,
+  buttonParameters: ButtonParameters,
 }
 
-function Button({ text, action, width = 'auto', height = 'auto', disabled = false }: ButtonProps) {
+function Button({ buttonParameters }: ButtonProps) {
   return (
     <button
       className={styles.button}
-      onClick={action}
-      style={{ width, height }}
-      disabled={disabled}
+      onClick={buttonParameters.action}
+      style={{ width: buttonParameters.width, height: buttonParameters.height }}
+      disabled={buttonParameters.disabled}
     >
-      {text}
+      {buttonParameters.text}
     </button>
   )
 }

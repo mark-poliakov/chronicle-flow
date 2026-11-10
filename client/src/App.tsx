@@ -9,6 +9,10 @@ import { beginEditingRecord, createRecord, deleteRecord, setDate, unselectRecord
 import { getLocalDateString } from './utils/utils';
 import RevisionHistory from './features/diary/RevisionHistory';
 import AuthScreen from './features/auth/AuthScreen';
+import Profile from './features/auth/Profile';
+import type { ModalParameters } from './types/types';
+import { closeModal, showModal } from './components/modalSlice';
+import Modal from './components/Modal';
 
 function App() {
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
@@ -16,17 +20,10 @@ function App() {
   const entryRevisions = useAppSelector((state) => state.diary.entryRevisions);
   const dateSelected = useAppSelector((state) => state.diary.dateSelected);
   const recordSelectedId = useAppSelector((state) => state.diary.recordSelectedId);
-
-  const userEmail = useAppSelector((state) => state.auth.email);
   
   const [isFormShown, setIsFormShown] = useState<boolean>(false);
 
   const dispath = useAppDispatch();
-
-  const handleCreateRecord = (text: string) => {
-    dispath(createRecord({ targetDate: dateSelected, content: text }));
-    setIsFormShown(false);
-  }
 
   const handleWindowClick = () => {dispath(unselectRecord())};
   useEffect(() => {
@@ -34,18 +31,55 @@ function App() {
     return () => {
       window.onclick = null;
     }
-  }, [])
+  }, []);
 
+  const handleCreateRecord = (text: string) => {
+    dispath(createRecord({ targetDate: dateSelected, content: text }));
+    setIsFormShown(false);
+  };
+
+  const editingConfirmationModal: ModalParameters = {
+    name: 'edit-confirmation',
+    heading: 'Warning',
+    message: 'Do you really want to edit the record? You could add new block of text',
+    options: [
+      { text: 'Yes', action: (event) => {
+        event.stopPropagation();
+        dispath(beginEditingRecord());
+        dispath(closeModal());
+      } },
+      { text: 'No', action: (event) => {
+        event.stopPropagation();
+        dispath(closeModal());
+      } },
+    ],
+  };
   const handleEditRecord = (event: MouseEvent) => {
     event.stopPropagation();
     // window.onclick = null;
-    dispath(beginEditingRecord());
-  }
-  
-  const handleDeleteRecord = () => {
-    dispath(deleteRecord(recordSelectedId!));
-    dispath(unselectRecord());
-  }
+    dispath(showModal(editingConfirmationModal.name));
+  };
+  const deletingConfirmationModal: ModalParameters = {
+    name: 'delete-confirmation',
+    heading: 'Warning',
+    message: 'Do you really want to delete the record? It will be lost permanently',
+    options: [
+      { text: 'Yes', action: (event) => {
+        event.stopPropagation();
+        dispath(deleteRecord(recordSelectedId!));
+        dispath(unselectRecord());
+        dispath(closeModal());
+      } },
+      { text: 'No', action: (event) => {
+        event.stopPropagation();
+        dispath(closeModal());
+      } },
+    ],
+  };
+  const handleDeleteRecord = (event: MouseEvent) => {
+    event.stopPropagation();
+    dispath(showModal(deletingConfirmationModal.name));
+  };
 
   return isLoggedIn ? (
     <>
@@ -53,14 +87,11 @@ function App() {
         <div className='logo-wrapper'>
           <h1 className='logo-text'>Chronicle Flow</h1>
         </div>
-        <div className='profile-wrapper'>
-          <span className='profile-name'>{userEmail ?? 'Profile'}</span>
-          <div className='profile-image-wrapper'></div>
-        </div>
+        <Profile />
       </header>
       <div className='content-wrapper'>
         <aside className='asideLeft'>
-          <div style={{textAlign: 'center'}}>Here will be the calendar later</div>
+          <div style={{textAlign: 'center'}}></div>
           <CalendarView />
           <div className='divider'></div>
           <RevisionHistory />
@@ -77,29 +108,33 @@ function App() {
           }
           <div className='buttons-wrapper'>
             <div className='button-wrapper'>
-              <Button text='Add text' action={() => {setIsFormShown(true)}} disabled={dateSelected === ''} />
+              <Button buttonParameters={{text: 'Add text', action: () => {setIsFormShown(true)}, disabled: dateSelected === ''}} />
             </div>
             <div className='button-wrapper'>
-              <Button text='Edit record' action={handleEditRecord} disabled={recordSelectedId === null} />
+              <Button buttonParameters={{text:'Edit record', action: handleEditRecord, disabled: recordSelectedId === null}} />
             </div>
             <div className='button-wrapper'>
-              <Button text='Delete record' action={handleDeleteRecord} disabled={recordSelectedId === null} />
+              <Button buttonParameters={{text: 'Delete record', action: handleDeleteRecord, disabled: recordSelectedId === null}} />
             </div>
           </div>
         </main>
         <div className='add-entry-wrapper' title='Write about today'>
           <Button 
-            text='+' 
-            action={() => {
-              dispath(setDate({ dateString: getLocalDateString() }));
-              setIsFormShown(true);
+            buttonParameters={{
+              text: '+', 
+              action: () => {
+                dispath(setDate({ dateString: getLocalDateString() }));
+                setIsFormShown(true);
+              },
+              width: '100%',
+              height: '100%',
+              disabled: dateSelected === '',
             }}
-            width='100%'
-            height='100%'
-            disabled={dateSelected === ''}
           />
         </div>
       </div>
+      <Modal modalParameters={editingConfirmationModal} />
+      <Modal modalParameters={deletingConfirmationModal} />
     </>
   ) : (
     <AuthScreen />

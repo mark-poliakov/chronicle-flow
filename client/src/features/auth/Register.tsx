@@ -1,7 +1,7 @@
 import { useState, type SubmitEvent, type SubmitEventHandler } from 'react';
 import styles from './LoginRegister.module.css';
 import { useAppDispatch } from '../../app/hooks';
-import { logIn } from './AuthSlice';
+import { logIn } from './authSlice';
 
 interface RegisterProps {
   handleLogin: () => void,

@@ -45,23 +45,21 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(register.fulfilled, (state, action) => {
-        state.token = action.payload.accessToken;
-        state.status = 'suceeded';
-        state.isLoggedIn = true;
-        localStorage.setItem(TOKEN_LOCAL_STORAGE_NAME, action.payload.accessToken);
-      })
-      .addCase(logIn.fulfilled, (state, action) => {
-        state.token = action.payload.accessToken;
-        state.status = 'suceeded';
-        state.isLoggedIn = true;
-        localStorage.setItem(TOKEN_LOCAL_STORAGE_NAME, action.payload.accessToken);
-      })
       .addCase(getMe.fulfilled, (state, action) => {
         state.email = action.payload.email;
         state.status = 'suceeded';
         state.isLoggedIn = true;
       })
+      .addMatcher(
+        isAnyOf(register.fulfilled, logIn.fulfilled,),
+        (state, action) => {
+          state.token = action.payload.accessToken;
+          state.status = 'suceeded';
+          state.isLoggedIn = true;
+          state.email = action.meta.arg.email;
+          localStorage.setItem(TOKEN_LOCAL_STORAGE_NAME, action.payload.accessToken);
+        }
+      )
 
       .addMatcher(
         isAnyOf(

@@ -26,27 +26,6 @@
   font-size: calc(var(--header-height) - 2 * var(--header-padding));
 }
 
-.profile-wrapper {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-right: calc(3 * var(--header-padding));
-}
-
-.profile-name {
-  font-size: 2rem;
-}
-
-.profile-image-wrapper {
-  height: calc(var(--header-height) - 2 * var(--header-padding));
-  width: calc(var(--header-height) - 2 * var(--header-padding));
-  border-radius: 100%;
-  background-color: var(--background-color);
-  border: var(--border);
-  margin-left: 2rem;
-}
-
 /* Content Wrapper */
 .content-wrapper {
   display: flex;
@@ -111,4 +90,13 @@
   margin-right: var(--container-margin);
   
   font-size: 5rem;
+}
+
+@media screen and (max-width: 800px) {
+  .logo-text {
+    font-size: 3rem;
+  }
+  .add-entry-wrapper {
+    display: none;
+  }
 }

@@ -1,4 +1,4 @@
-import { useState, type BaseSyntheticEvent } from "react";
+import { useEffect, useState, type BaseSyntheticEvent } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { getRecords, setDate } from "./diarySlice";
 
@@ -10,10 +10,13 @@ function CalendarView() {
 
   const handleDateChange = (event: BaseSyntheticEvent) => {
     const newDate = event.target.value;
-    setDateSelected(newDate);
     dispatch(setDate({ dateString: newDate }));
-    dispatch(getRecords(newDate));
   }
+  
+  useEffect(() => {
+    setDateSelected(dateSelectedState);
+    dispatch(getRecords(dateSelectedState));
+  }, [dateSelectedState]);
   
   return (
     <input type='date' min='2025-01-01' max='2026-12-31' value={dateSelected} onChange={handleDateChange}></input>

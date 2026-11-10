@@ -37,10 +37,10 @@ function AddEntryRevisionForm ({ handleClose, handlePublish }: AddEntryRevisionF
       ></textarea>
       <div className={styles.buttonsWrapper}>
         <div className={styles.buttonWrapper}>
-          <Button text='Publish' action={() => {handlePublish(text)}}/>
+          <Button buttonParameters={{ text: 'Publish', action: () => {handlePublish(text)} }}/>
         </div>
         <div className={styles.buttonWrapper}>
-          <Button text='Cancel' action={handleClose}/>
+          <Button buttonParameters={{ text: 'Cancel', action: handleClose }}/>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import type { EntryRevision as EntryRevisionType } from '../../types/types'
 import { ConvertTimeToDate } from '../../utils/utils';
 import { selectRecord } from './diarySlice';
 import styles from './EntryRevision.module.css';
+import EditEntryRevisionForm from './EditEntryRevisionForm';
 
 interface EntryRevisionProps {
   entryRevision: EntryRevisionType,
@@ -38,7 +39,7 @@ function EntryRevision({ entryRevision }: EntryRevisionProps) {
         }
       </span>
       {isSelected && isRecordBeingEdited ? (
-        <p>Being edited...</p>
+        <EditEntryRevisionForm currentContent={entryRevision.content} entryRevisionId={entryRevision.id}/>
       ) : (
         <p className={styles.text}>
           {entryRevision.content}

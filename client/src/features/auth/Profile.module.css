@@ -1,0 +1,32 @@
+@import '../../index.css';
+
+.profileWrapper {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: calc(3 * var(--header-padding));
+  border-radius: var(--border-radius);
+  border: var(--border);
+  border-color: transparent;
+  background: none;
+  color: var(--font-frimary-color);
+  cursor: pointer;
+  position: relative;
+}
+.profileWrapper:focus-visible {
+  border-color: var(--color-primary);
+}
+
+.profileName {
+  font-size: 1.6rem;
+}
+
+.profileImageWrapper {
+  height: calc(var(--header-height) - 2 * var(--header-padding));
+  width: calc(var(--header-height) - 2 * var(--header-padding));
+  border-radius: 100%;
+  background-color: var(--background-color);
+  border: var(--border);
+  margin-left: 2rem;
+}
