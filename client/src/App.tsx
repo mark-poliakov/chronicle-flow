@@ -13,6 +13,7 @@ import Profile from './features/auth/Profile';
 import type { ModalParameters } from './types/types';
 import { closeModal, showModal } from './components/modalSlice';
 import Modal from './components/Modal';
+import { handleWindowClick } from './features/diary/utils/utils';
 
 function App() {
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
@@ -23,20 +24,16 @@ function App() {
   
   const [isFormShown, setIsFormShown] = useState<boolean>(false);
 
-  const dispath = useAppDispatch();
-
-  const handleWindowClick = () => {dispath(unselectRecord())};
-  useEffect(() => {
-    window.onclick = handleWindowClick;
-    return () => {
-      window.onclick = null;
-    }
-  }, []);
+  const dispatch = useAppDispatch();
 
   const handleCreateRecord = (text: string) => {
-    dispath(createRecord({ targetDate: dateSelected, content: text }));
+    dispatch(createRecord({ targetDate: dateSelected, content: text }));
     setIsFormShown(false);
   };
+
+  useEffect(() => {
+    window.addEventListener('click', handleWindowClick);
+  }, [])
 
   const editingConfirmationModal: ModalParameters = {
     name: 'edit-confirmation',
@@ -45,19 +42,19 @@ function App() {
     options: [
       { text: 'Yes', action: (event) => {
         event.stopPropagation();
-        dispath(beginEditingRecord());
-        dispath(closeModal());
+        dispatch(beginEditingRecord());
+        dispatch(closeModal());
       } },
       { text: 'No', action: (event) => {
         event.stopPropagation();
-        dispath(closeModal());
+        dispatch(closeModal());
       } },
     ],
   };
   const handleEditRecord = (event: MouseEvent) => {
     event.stopPropagation();
     // window.onclick = null;
-    dispath(showModal(editingConfirmationModal.name));
+    dispatch(showModal(editingConfirmationModal.name));
   };
   const deletingConfirmationModal: ModalParameters = {
     name: 'delete-confirmation',
@@ -66,19 +63,19 @@ function App() {
     options: [
       { text: 'Yes', action: (event) => {
         event.stopPropagation();
-        dispath(deleteRecord(recordSelectedId!));
-        dispath(unselectRecord());
-        dispath(closeModal());
+        dispatch(deleteRecord(recordSelectedId!));
+        dispatch(unselectRecord());
+        dispatch(closeModal());
       } },
       { text: 'No', action: (event) => {
         event.stopPropagation();
-        dispath(closeModal());
+        dispatch(closeModal());
       } },
     ],
   };
   const handleDeleteRecord = (event: MouseEvent) => {
     event.stopPropagation();
-    dispath(showModal(deletingConfirmationModal.name));
+    dispatch(showModal(deletingConfirmationModal.name));
   };
 
   return isLoggedIn ? (
@@ -123,7 +120,7 @@ function App() {
             buttonParameters={{
               text: '+', 
               action: () => {
-                dispath(setDate({ dateString: getLocalDateString() }));
+                dispatch(setDate({ dateString: getLocalDateString() }));
                 setIsFormShown(true);
               },
               width: '100%',

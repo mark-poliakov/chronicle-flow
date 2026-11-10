@@ -1,8 +1,9 @@
-import { useState, type BaseSyntheticEvent } from 'react';
+import { useEffect, useState, type BaseSyntheticEvent } from 'react';
 import styles from './EditEntryRevisionForm.module.css';
 import { useAppDispatch } from '../../app/hooks';
 import { editRecord, endEditingRecord } from './diarySlice';
 import Button from '../../components/Button';
+import { handleWindowClick } from './utils/utils';
 
 interface EditEntryRevisionFormProps {
   currentContent: string,
@@ -24,16 +25,24 @@ function EditEntryRevisionForm ({ currentContent, entryRevisionId }: EditEntryRe
     dispatch(endEditingRecord());
   }
   const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      switch (event.key) {
-        case 'Enter':
-          handleConfirmChanges();
-          break;
-        case 'Escape':
-          handleClose();
-          break;
-        default:
-      }
+    switch (event.key) {
+      case 'Enter':
+        handleConfirmChanges();
+        break;
+      case 'Escape':
+        handleClose();
+        break;
+      default:
+    }
+  };
+
+  useEffect(() => {
+    window.removeEventListener('click', handleWindowClick);
+    return () => {
+      window.addEventListener('click', handleWindowClick);
     };
+  }, []);
+
   return (
     <>
       <textarea 
