@@ -1,0 +1,60 @@
+.container {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  flex: 1;
+  padding: 0;
+  margin: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-color: var(--font-color-primary) transparent;
+  scrollbar-width: calc(var(--container-padding) / 2);
+  scrollbar-gutter: stable both-edges;
+}
+
+.item {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.labelWrapper {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.3rem 0;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color linear var(--transition-time), color linear var(--transition-time);
+  padding: 0.5rem 0;
+  border-radius: var(--border-radius);
+  border: var(--border);
+  border-color: transparent;
+}
+.labelWrapper:hover {
+  background-color: var(--gray-primary);
+}
+.selected {
+  pointer-events: none;
+  border-color: var(--color-primary);
+  background-color: var(--gray-primary);
+}
+
+.shortContent {
+  margin: 0 0 0 1rem;
+  padding: 0;
+  font-size: 1.2rem;
+  font-style: italic;
+}
+.timeMarker {
+  margin: 0 1rem 0 2rem;
+  padding: 0;
+  font-size: 1.4rem;
+  text-wrap: nowrap;
+}

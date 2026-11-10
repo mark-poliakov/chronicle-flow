@@ -1,101 +1,149 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, isAnyOf, type PayloadAction } from "@reduxjs/toolkit";
 import type { Entry, EntryRevision } from "../../types/types";
 import { getLocalDateString } from "../../utils/utils";
-
-// temporary static data
-const entries: Record<string, Entry> = {
-  '2026-11-06': { id: '1', targetDate: getLocalDateString(new Date(2026, 10, 6)), createdAt: Date.UTC(2026, 10, 6) },
-  '2026-11-05': { id: '2', targetDate: getLocalDateString(new Date(2026, 10, 5)), createdAt: Date.UTC(2026, 10, 5) },
-  '2026-11-07': { id: '3', targetDate: getLocalDateString(new Date(2026, 10, 7)), createdAt: Date.UTC(2026, 10, 7) },
-}
-const entryRevisions: EntryRevision[] = [
-  { id: '1', entryId: '3', content: 'This is an entry revision', revisionType: 'INITIAL', createdAt: Date.UTC(2026, 10, 7) },
-  { id: '2', entryId: '3', content: 'This is another entry revision', revisionType: 'RETROSPECTIVE_EDIT', createdAt: Date.UTC(2026, 10, 7) },
-];
-const dateSelectedInitial = getLocalDateString();
+import { http } from "../../app/api/http";
 
 interface DiaryState {
   dateSelected: string,
-  entries: Record<string, Entry>,
+  entries: Record<string, Entry | null>,
   entryRevisions: EntryRevision[],
+  recordSelectedId: string | null,
+  isRecordBeingEdited: boolean,
+  status: 'idle' | 'loading' | 'suceeded' | 'failed',
+  error: string | null,
 }
 
+export const getEntries = createAsyncThunk('diary/getEntries', () => {
+  return http<Entry[]>('/diary/entries');
+});
+
+export const getRecords = createAsyncThunk('diary/getRecords', (targetDate: string) => {
+  return http<EntryRevision[]>(`/diary/records/${targetDate}`);
+});
+
+export const createRecord = createAsyncThunk('diary/createRecord', (data: { targetDate: string, content: string }) => {
+  return http<EntryRevision>('/diary', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+});
+
+export const editRecord = createAsyncThunk('diary/editRecord', ({ recordId, data }: { recordId: string, data: { content: string } }) => {
+  return http<EntryRevision>(`/diary/${recordId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+});
+
+export const deleteRecord = createAsyncThunk('diary/deleteRecord', (recordId: string) => {
+  return http<void>(`/diary/${recordId}`, {
+    method: 'DELETE',
+  });
+});
+
 const initialState: DiaryState = {
-  dateSelected: dateSelectedInitial,
-  entries: entries,
-  entryRevisions: entryRevisions.filter((entryRevision) => entryRevision.entryId === entries[dateSelectedInitial].id),
+  dateSelected: getLocalDateString(),
+  entries: {},
+  entryRevisions: [],
+  recordSelectedId: null,
+  isRecordBeingEdited: false,
+  status: 'idle',
+  error: null,
 };
 
 const diarySlice = createSlice({
   name: 'diary',
   initialState,
   reducers: {
-    setDate: (state, action: PayloadAction<string>) => {
-      if (!action.payload) {
+    setDate: (state, action: PayloadAction<{dateString: string}>) => {
+      if (!action.payload || action.payload.dateString === state.dateSelected) {
         return;
       }
-      state.dateSelected = action.payload;
-      
-      const existingEntry = state.entries[state.dateSelected];
-      if (existingEntry) {
-        state.entryRevisions = entryRevisions.filter((entryRevision) => entryRevision.entryId === existingEntry.id);
-      } else {
+      state.dateSelected = action.payload.dateString;
+      state.recordSelectedId = null;
+
+      const existingEntry = state.entries[action.payload.dateString];
+      if (!existingEntry) {
         state.entryRevisions = [];
       }
     },
-    createEntryRevisionRetrospective: (state, action: PayloadAction<string>) => {
-      if (!action.payload) {
+    selectRecord: (state, action: PayloadAction<{id: string}>) => {
+      const record = state.entryRevisions.find((record) => record.id === action.payload.id);
+      if (!record) {
         return;
       }
-      const existingEntry = state.entries[state.dateSelected];
-      let entryId;
-      if (!existingEntry) {
-        entryId = 'new';
-        state.entries[getLocalDateString()] = ({
-          id: entryId,
-          targetDate: state.dateSelected,
-          createdAt: Date.now(),
-        }) 
-      } else {
-        entryId = existingEntry.id;
-      }
+      state.recordSelectedId = record.id;
 
-      const newEntryRevision: EntryRevision = {
-        id: '1',
-        entryId,
-        content: action.payload,
-        revisionType: 'RETROSPECTIVE_EDIT',
-        createdAt: Date.now(),
-      }
-      entryRevisions.push(newEntryRevision);
-      state.entryRevisions.push(newEntryRevision);
+      state.isRecordBeingEdited = false;
     },
-    createEntryRevisionInitial: (state, action: PayloadAction<string>) => {
-      if (!action.payload) {
-        return;
-      }
-      let entryId = 'init';
-      if (!state.entries[getLocalDateString()]) {
-        state.entries[getLocalDateString()] = ({
-          id: entryId,
-          targetDate: state.dateSelected,
-          createdAt: Date.now(),
-        })
-      } else {
-        entryId = state.entries[getLocalDateString()].id;
-      }
-      const newEntryRevision: EntryRevision = {
-        id: '100',
-        entryId,
-        content: action.payload,
-        revisionType: 'INITIAL',
-        createdAt: Date.now(),
-      }
-      entryRevisions.push(newEntryRevision);
-      state.entryRevisions.push(newEntryRevision);
-    }
+    unselectRecord: (state) => {
+      state.recordSelectedId = null;
+
+      state.isRecordBeingEdited = false;
+    },
+    beginEditingRecord: (state) => {
+      state.isRecordBeingEdited = true;
+    },
+    endEditingRecord: (state) => {
+      state.isRecordBeingEdited = false;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(getEntries.fulfilled, (state, action) => {
+        for(let i = 0; i < action.payload.length; i++) {
+          state.entries[action.payload[i].targetDate] = { 
+            id: action.payload[i].id,
+            targetDate: action.payload[i].targetDate,
+            createdAt: action.payload[i].createdAt,
+            updatedAt: action.payload[i].updatedAt,
+          };
+        }
+      })
+      .addCase(getRecords.fulfilled, (state, action) => {
+        state.entryRevisions = action.payload;
+      })
+      .addCase(createRecord.fulfilled, (state, action) => {
+        state.entryRevisions = [...state.entryRevisions, action.payload];
+        state.entries[action.meta.arg.targetDate] = { 
+          id: action.payload.entryId,
+          targetDate: action.meta.arg.targetDate,
+          createdAt: action.payload.createdAt,
+          updatedAt: action.payload.updatedAt,
+        };
+      })
+      .addCase(editRecord.fulfilled, (state, action) => {
+        const recordIndex = state.entryRevisions.findIndex((record) => record.id === action.payload.id);
+        if (recordIndex !== -1) {
+          state.entryRevisions[recordIndex] = action.payload;
+          console.warn(`Record ${action.payload.id} did not exist`);
+        }
+      })
+      .addCase(deleteRecord.fulfilled, (state, action) => {
+        state.entryRevisions = state.entryRevisions.filter((record) => record.id !== action.meta.arg);
+      })
+      .addMatcher(
+        isAnyOf(
+          getEntries.fulfilled, getRecords.fulfilled, createRecord.fulfilled, editRecord.fulfilled, deleteRecord.fulfilled,
+        ),
+        (state) => { state.status = 'suceeded' }
+      )
+
+      .addMatcher(
+        isAnyOf(
+          getEntries.pending, getRecords.pending, createRecord.pending, editRecord.pending, deleteRecord.pending,
+        ),
+        (state) => { state.status = 'loading'; state.error = null }
+      )
+
+      .addMatcher(
+        isAnyOf(
+          getEntries.rejected, getRecords.rejected, createRecord.rejected, editRecord.rejected, deleteRecord.rejected,
+        ),
+        (state, action) => { state.status = 'failed'; state.error = action.error.message ?? 'Request failed' }
+      )
   }
 });
 
-export const { setDate, createEntryRevisionRetrospective, createEntryRevisionInitial } = diarySlice.actions;
+export const { setDate, selectRecord, unselectRecord, beginEditingRecord, endEditingRecord } = diarySlice.actions;
 export default diarySlice.reducer;

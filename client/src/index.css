@@ -25,6 +25,10 @@
   box-sizing: border-box;
 }
 
+*:focus-visible {
+  outline: none;
+}
+
 html {
   font-size: 62.5%;
   color: var(--font-color-primary);
@@ -33,8 +37,6 @@ html {
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
 }
 
 body {
@@ -42,6 +44,9 @@ body {
   background: linear-gradient(to bottom left, var(--background-gradient-start-color), var(--background-color) 50%);
   background-repeat: no-repeat;
   background-color: var(--background-color);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -52,6 +57,12 @@ h1, h2, h3, h4, h5, h6 {
 
 a {
   color: var(--primary-color);
+  transition: color linear var(--transition-time);
+  cursor: pointer;
+}
+a:hover,
+a:focus-visible {
+  color: blue;
 }
 
 #root {

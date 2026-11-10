@@ -1,0 +1,69 @@
+.screenContainer {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.container {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  align-items: center;
+
+  width: 60rem;
+  height: 20rem;
+  position: relative;
+  
+  background-color: var(--background-secondary-color);
+  border: var(--border);
+  border-radius: var(--border-radius);
+}
+
+.closeIcon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  border: var(--border);
+  border-radius: 100%;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  background-color: var(--background-secondary-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: rotate(45deg);
+  color: var(--font-color-primary);
+  transition: color linear var(--transition-time);
+}
+.closeIcon:hover {
+  color: var(--primary-color);
+}
+
+.heading {
+  padding: 0;
+  margin: var(--container-padding) 0;
+  flex: 1;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.buttonsContainer {
+  flex: 1;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+}
+
+.buttonContainer {
+  margin: var(--container-padding) var(--container-margin);
+}

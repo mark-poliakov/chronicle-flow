@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: stretch;
+
+  max-width: 60rem;
+  flex-basis: 100%;
+  align-self: center;
+}
+.authFormContainer {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  background-color: var(--background-primary-color);
+
+  margin-top: var(--container-margin);
+  padding: var(--container-padding);
+  border: var(--border);
+  border-radius: var(--border-radius);
+}
+.errorMessage {
+  color: red;
+  font-size: 1.2rem;
+  text-align: center;
+  text-wrap: wrap;
+}

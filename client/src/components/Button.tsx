@@ -1,20 +1,19 @@
 import styles from './Button.module.css'
+import type { ButtonParameters } from '../types/types';
 
 interface ButtonProps {
-  text: string,
-  action: () => void,
-  width?: string,
-  height?: string,
+  buttonParameters: ButtonParameters,
 }
 
-function Button({ text, action, width = 'auto', height = 'auto' }: ButtonProps) {
+function Button({ buttonParameters }: ButtonProps) {
   return (
     <button
       className={styles.button}
-      onClick={action}
-      style={{ width, height }}
+      onClick={buttonParameters.action}
+      style={{ width: buttonParameters.width, height: buttonParameters.height }}
+      disabled={buttonParameters.disabled}
     >
-      {text}
+      {buttonParameters.text}
     </button>
   )
 }

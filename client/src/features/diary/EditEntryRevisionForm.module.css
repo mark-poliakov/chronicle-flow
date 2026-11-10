@@ -1,0 +1,28 @@
+.form {
+  color: var(--font-color-primary);
+  margin: 0;
+  padding: 0;
+  background: none;
+  font-family: inherit;
+  border: none;
+  outline: none;
+  font-size: inherit;
+  resize: none;
+  width: 100%;
+  position: relative;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+.buttonsWrapper {
+  background-color: var(--background-secondary-color);
+  width: 100%;
+  border-radius: var(--border-radius);
+  border: var(--border);
+
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 1rem;
+}
+.buttonWrapper {
+  margin: var(--container-margin);
+}

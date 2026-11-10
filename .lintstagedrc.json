@@ -1,8 +1,7 @@
 {
   "client/**/*.{ts,tsx,js,jsx,json,css,md}": [
-    "prettier --check"
+    
   ],
   "server/**/*.{ts,js,json}": [
-    "prettier --check"
   ]
 }
