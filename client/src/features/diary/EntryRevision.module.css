@@ -1,5 +1,3 @@
-@import '../../index.css';
-
 .container {
   border-radius: var(--border-radius);
   display: block;

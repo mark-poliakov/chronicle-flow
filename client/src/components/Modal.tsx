@@ -15,7 +15,7 @@ function Modal ({ modalParameters }: ModalProps) {
   return currentModalShownName === modalParameters.name && (
     <div className={styles.screenContainer} onClick={(event) => {event.stopPropagation()}}>
       <div className={styles.container}>
-        <div className={styles.closeIcon} onClick={() => {dispatch(closeModal())}}></div>
+        <div className={styles.closeIcon} onClick={() => {dispatch(closeModal())}}>+</div>
         <h2 className={styles.heading}>{modalParameters.heading}</h2>
         <p className={styles.message}>{modalParameters.message}</p>
         <div className={styles.buttonsContainer}>

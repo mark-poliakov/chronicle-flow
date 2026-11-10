@@ -56,14 +56,14 @@ const diarySlice = createSlice({
   initialState,
   reducers: {
     setDate: (state, action: PayloadAction<{dateString: string}>) => {
-      if (!action.payload) {
+      if (!action.payload || action.payload.dateString === state.dateSelected) {
         return;
       }
       state.dateSelected = action.payload.dateString;
       state.recordSelectedId = null;
 
       const existingEntry = state.entries[action.payload.dateString];
-      if (existingEntry) {
+      if (!existingEntry) {
         state.entryRevisions = [];
       }
     },
