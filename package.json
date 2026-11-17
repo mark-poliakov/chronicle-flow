@@ -1,10 +1,12 @@
 {
   "devDependencies": {
+    "concurrently": "^10.0.7",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.10"
   },
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev": "concurrently --kill-others \"npm run --prefix ./client dev\" \"npm run --prefix ./server start:dev\""
   }
 }
