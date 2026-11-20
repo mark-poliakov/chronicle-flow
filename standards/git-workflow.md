@@ -1,24 +1,30 @@
 # Правила роботи з Git (Git Workflow)
 
 ## 1. Формат повідомлень комітів (Commit Messages)
+
 ### Структура коміту:
+
 `<type>: <дієслово в інфінітиві> <стислий опис змін>`
 
 ### Основні типи (`<type>`):
+
 - `feat:` — додавання нового функціоналу (Feature).
 - `fix:` — виправлення багу.
 - `docs:` — зміни в документації або файлах папки `standards/`.
 - `style:` — правки форматування (пробіли, дужки), які не впливають на логіку.
 - `refactor:` — переписання коду без зміни його зовнішньої поведінки.
 - `chore:` — оновлення пакетів, налаштування Husky, ESLint тощо.
+- `test:` — створення або виправлення існуючих тестів
 
 ### Приклади правильних комітів:
+
 - `feat: add retroactive editing feature`
 - `fix: fix date validation issue in DTO`
 - `docs: create coding and architecture standards`
 - `chore: set Husky and lint-staged for validating before commit`
 
 ## 2. Правила роботи з гілками (Branching Strategy)
+
 - `main` — стабільна версія проєкту. Запрямий коміт у `main` заборонений.
 - Всі нові фічі розробляються в окремих гілках, створених від `main`:
   - `feature/add-entry-editor`
@@ -37,3 +43,4 @@
 - `hotfix/` — urgent fixes in production environment.
 - `chore/` — dependencies updating, setting up CI/CD.
 - `docs/` — work with the documentation only.
+- `test/` — work with tests: adding or fixing.

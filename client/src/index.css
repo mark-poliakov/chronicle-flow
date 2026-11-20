@@ -21,7 +21,9 @@
   --text-shadow: 0.2rem 0.2rem 0.4rem var(--primary-color);
 }
 
-*, **::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -34,14 +36,19 @@ html {
   color: var(--font-color-primary);
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
 
 body {
   font-size: 1.6rem;
-  background: linear-gradient(to bottom left, var(--background-gradient-start-color), var(--background-color) 50%);
+  background: linear-gradient(
+    to bottom left,
+    var(--background-gradient-start-color),
+    var(--background-color) 50%
+  );
   background-repeat: no-repeat;
   background-color: var(--background-color);
   width: 100vw;
@@ -49,7 +56,12 @@ body {
   overflow: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: var(--font-color-headings);
   padding: 0;
   margin: 0;

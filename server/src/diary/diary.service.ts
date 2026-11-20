@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service.js";
-import { UpdateRecordDto } from "./dto/update-record.dto.js";
-import { CreateRecordDto } from "./dto/create-record.dto.js";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { UpdateRecordDto } from './dto/update-record.dto.js';
+import { CreateRecordDto } from './dto/create-record.dto.js';
 
 @Injectable()
 export class DiaryService {
-  constructor (private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
   findAllEntries(userId: string) {
     return this.prisma.entry.findMany({
@@ -15,7 +15,7 @@ export class DiaryService {
   }
 
   findAllEntryRevisions(targetDate: string, userId: string) {
-    targetDate = new Date(targetDate).toISOString();
+    targetDate = this.normalizeDate(targetDate);
     return this.prisma.entryRevision.findMany({
       where: {
         entry: {
@@ -28,8 +28,8 @@ export class DiaryService {
   }
 
   async create(dto: CreateRecordDto, userId: string) {
-    const date = new Date(dto.targetDate).toISOString();
-    const entry = await this.prisma.entry.findFirst({ where: { userId, targetDate: date }})
+    const date = this.normalizeDate(dto.targetDate);
+    const entry = await this.prisma.entry.findFirst({ where: { userId, targetDate: date } });
     let entryId;
     if (!entry) {
       entryId = (await this.prisma.entry.create({ data: { userId, targetDate: date } })).id;
@@ -68,5 +68,14 @@ export class DiaryService {
       throw new NotFoundException(`EntryRevision ${id} not found`);
     }
     return this.prisma.entryRevision.delete({ where: { id } });
+  }
+
+  private normalizeDate(targetDate: string) {
+    const date = new Date(targetDate);
+    date.setUTCHours(0);
+    date.setUTCMinutes(0);
+    date.setUTCSeconds(0);
+    date.setUTCMilliseconds(0);
+    return date.toISOString();
   }
 }
