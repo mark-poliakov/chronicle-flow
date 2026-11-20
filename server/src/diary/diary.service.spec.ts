@@ -66,7 +66,7 @@ describe('DiaryService', () => {
   describe('findAllEntryRevisions', () => {
     it('normalises the target date before querying', async () => {
       prisma.entryRevision.findMany.mockResolvedValue([]);
-      const targetDate = '2025-01-15T10:30:00Z';
+      const targetDate = '2025-01-15T10:30:15.500Z';
       const expectedDate = normalizeDate(targetDate);
       await service.findAllEntryRevisions(targetDate, 'user-1');
       expect(prisma.entryRevision.findMany).toHaveBeenCalledWith(
@@ -165,7 +165,7 @@ describe('DiaryService', () => {
           id: revisionId,
           entry: { userId: 'user-1' },
         },
-      }); // check after designing integration tests
+      });
       expect(prisma.entryRevision.update).toHaveBeenCalledWith({
         where: { id: revisionId },
         data: dto,

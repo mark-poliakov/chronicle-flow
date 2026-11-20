@@ -107,7 +107,7 @@ describe('Diary (integration)', () => {
 
     await request(app.getHttpServer())
       .post('/diary')
-      .send({ targetDate: '2025-01-15T12:30:15Z', content: 'hello' })
+      .send({ targetDate: '2025-01-15T12:30:15.500Z', content: 'hello' })
       .expect(201);
 
     const entry = await request(app.getHttpServer()).get('/diary/entries').expect(200);
@@ -137,6 +137,16 @@ describe('Diary (integration)', () => {
     await request(app.getHttpServer()).delete(`/diary/${entryRevisionId}`).expect(200);
 
     expect(await prisma.entryRevision.findUnique({ where: { id: entryRevisionId } })).toBeNull();
+  });
+
+  it('DELETE /diary/:id with non-existing record throws 404', async () => {
+    await request(app.getHttpServer()).delete('/diary/non-existing').expect(404);
+
+    const entryRevisionId = await seedEntryRevision(prisma, { userId: USER_A });
+    await request(app.getHttpServer()).delete('/diary/non-existing').expect(404);
+    expect(
+      await prisma.entryRevision.findUnique({ where: { id: entryRevisionId } }),
+    ).not.toBeNull();
   });
 
   it('User isolation is present at the DB level', async () => {
