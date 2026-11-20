@@ -60,3 +60,6 @@ dev.db
 test.db
 test-e2e.db
 *.tsbuildinfo
+
+# stryker temp files
+.stryker-tmp
