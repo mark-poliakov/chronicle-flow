@@ -112,11 +112,11 @@ describe('Diary (integration)', () => {
 
     const entry = await request(app.getHttpServer()).get('/diary/entries').expect(200);
     expect(entry.body).toHaveLength(1);
-    expect(entry.body[0]).toMatchObject({ targetDate: '2025-01-15T00:00:000Z' });
+    expect(entry.body[0]).toMatchObject({ targetDate: '2025-01-15T00:00:00.000Z' });
 
     const entryInDB = await prisma.entry.findMany();
     expect(entryInDB).toHaveLength(1);
-    expect(entryInDB[0]).toMatchObject({ targetDate: '2025-01-15T00:00:00:000Z' });
+    expect(entryInDB[0].targetDate.toISOString()).toBe('2025-01-15T00:00:00.000Z');
   });
 
   it('PATCH of non-existent entryRevision does not change any row in the DB', async () => {
