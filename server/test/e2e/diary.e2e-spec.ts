@@ -3,6 +3,9 @@ import { PrismaService } from '../../src/prisma/prisma.service.js';
 import { buildE2EApp } from './helpers/build-app.js';
 import { registerAndLogin } from './helpers/auth.js';
 import request from 'supertest';
+import { GLOBAL_PREFIX } from '../../src/app.constants.js';
+
+const API = `/${GLOBAL_PREFIX}`;
 
 describe('Diary (e2e)', () => {
   let app: INestApplication;
@@ -21,7 +24,7 @@ describe('Diary (e2e)', () => {
     const { accessToken } = await registerAndLogin(app, 'user1@example.com');
 
     const res = await request(app.getHttpServer())
-      .post('/diary')
+      .post(`${API}/diary`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ targetDate: '2025-01-15', content: 'first record' })
       .expect(201);
@@ -39,21 +42,21 @@ describe('Diary (e2e)', () => {
     const auth = `Bearer ${accessToken}`;
 
     const created = await request(app.getHttpServer())
-      .post('/diary')
+      .post(`${API}/diary`)
       .set('Authorization', auth)
       .send({ targetDate: '2025-01-15', content: 'draft' })
       .expect(201);
     const entryRevisionId = created.body.id;
 
     const list = await request(app.getHttpServer())
-      .get('/diary/entries')
+      .get(`${API}/diary/entries`)
       .set('Authorization', auth)
       .expect(200);
     expect(list.body).toHaveLength(1);
     expect(list.body[0].userId).toBe(userId);
 
     await request(app.getHttpServer())
-      .patch(`/diary/${entryRevisionId}`)
+      .patch(`${API}/diary/${entryRevisionId}`)
       .set('Authorization', auth)
       .send({ content: 'final' })
       .expect(200);
@@ -62,7 +65,7 @@ describe('Diary (e2e)', () => {
     expect(afterEdit?.content).toBe('final');
 
     await request(app.getHttpServer())
-      .delete(`/diary/${entryRevisionId}`)
+      .delete(`${API}/diary/${entryRevisionId}`)
       .set('Authorization', auth)
       .expect(200);
 
@@ -71,20 +74,20 @@ describe('Diary (e2e)', () => {
   });
 
   it('access denied when token is invalid', async () => {
-    await request(app.getHttpServer()).get('/diary/entries').expect(401);
+    await request(app.getHttpServer()).get(`${API}/diary/entries`).expect(401);
 
     await request(app.getHttpServer())
-      .get('/diary/entries')
+      .get(`${API}/diary/entries`)
       .set('Authorization', 'not-real-jwt')
       .expect(401);
 
     await request(app.getHttpServer())
-      .post('/diary')
+      .post(`${API}/diary`)
       .send({ targetDate: '2025-01-15', content: 'illegal record hehehe' })
       .expect(401);
 
     await request(app.getHttpServer())
-      .post('/diary')
+      .post(`${API}/diary`)
       .set('Authorization', 'not-real-jwt')
       .send({ targetDate: '2025-01-15', content: 'illegal record hehehe' })
       .expect(401);
@@ -103,19 +106,19 @@ describe('Diary (e2e)', () => {
     const authB = `Bearer ${tokenB}`;
 
     const createdRecord = await request(app.getHttpServer())
-      .post('/diary')
+      .post(`${API}/diary`)
       .set('Authorization', authA)
       .send({ targetDate: '2025-01-15', content: 'record from A' })
       .expect(201);
 
     await request(app.getHttpServer())
-      .get('/diary/entries')
+      .get(`${API}/diary/entries`)
       .set('Authorization', authB)
       .expect(200)
       .expect([]);
 
     await request(app.getHttpServer())
-      .patch(`/diary/${createdRecord.body.id}`)
+      .patch(`${API}/diary/${createdRecord.body.id}`)
       .set('Authorization', authB)
       .send({ content: 'updated by B' })
       .expect(404);

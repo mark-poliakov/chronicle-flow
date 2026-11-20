@@ -1,5 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { GLOBAL_PREFIX } from '../../../src/app.constants.js';
+
+const API = `/${GLOBAL_PREFIX}`;
 
 export async function registerAndLogin(
   app: INestApplication,
@@ -7,12 +10,12 @@ export async function registerAndLogin(
   password: string = 'password123',
 ): Promise<{ accessToken: string; userId: string }> {
   const token = await request(app.getHttpServer())
-    .post('/auth/register')
+    .post(`${API}/auth/register`)
     .send({ email, password })
     .expect(201);
 
   const userInfo = await request(app.getHttpServer())
-    .get('/auth/me')
+    .get(`${API}/auth/me`)
     .set('Authorization', `Bearer ${token.body.accessToken}`)
     .expect(200);
 
