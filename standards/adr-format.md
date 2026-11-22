@@ -1,6 +1,6 @@
 # ADR
 
-Path: `/docs/adr/{001-decision}`
+Path: `/docs/decisions/{001-decision}`
 
 ## Naming:
 

@@ -1,4 +1,4 @@
-date: {2026-11-5 of last update}
+date: 2026-11-05
 decision-makers: Mark
 ---
 
@@ -12,14 +12,14 @@ decision-makers: Mark
 
 ### Repository organisation:
 
-* Монорепозиторій
-* Розподілений репозиторій
+- Монорепозиторій
+- Розподілений репозиторій
 
 ### Folders for documentation:
 
-* `/docs` + `/standards`; `/docs` -> `./decisions` + `./spec`
-* `/docs`; `/docs` -> `./decisions` + `./spec` + `./standards`
-* `CONTRIBUTING.md`
+- `/docs` + `/standards`; `/docs` -> `./decisions` + `./spec`
+- `/docs`; `/docs` -> `./decisions` + `./spec` + `./standards`
+- `CONTRIBUTING.md`
 
 ## Decision Outcome
 
