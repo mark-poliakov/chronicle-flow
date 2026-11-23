@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { DiaryService } from './diary.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { NotFoundException } from '@nestjs/common';
+import { AppLoggerModule } from '../logger/app-logger.module.js';
 
 const normalizeDate = (targetDate: string) => {
   const date = new Date(targetDate);
@@ -43,6 +44,7 @@ describe('DiaryService', () => {
 
     const moduleRef = await Test.createTestingModule({
       providers: [DiaryService, { provide: PrismaService, useValue: prisma }],
+      imports: [AppLoggerModule],
     }).compile();
 
     service = moduleRef.get(DiaryService);

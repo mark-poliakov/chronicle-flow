@@ -5,6 +5,7 @@ import { DiaryService } from '../../../src/diary/diary.service.js';
 import { PrismaService } from '../../../src/prisma/prisma.service.js';
 import { JwtAuthGuard } from '../../../src/auth/guards/jwt-auth.guard.js';
 import { ConfigService } from '@nestjs/config';
+import { AppLoggerModule } from '../../../src/logger/app-logger.module.js';
 
 export function makeFakeGuard(user: { id: string } | null) {
   return {
@@ -20,6 +21,7 @@ export async function buildDiaryApp(user: { id: string } | null): Promise<INestA
   const moduleRef = await Test.createTestingModule({
     controllers: [DiaryController],
     providers: [DiaryService, PrismaService, ConfigService],
+    imports: [AppLoggerModule],
   })
     .overrideGuard(JwtAuthGuard)
     .useValue(makeFakeGuard(user))
