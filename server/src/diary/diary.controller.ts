@@ -1,14 +1,24 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
-import { DiaryService } from "./diary.service.js";
-import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
-import { CreateRecordDto } from "./dto/create-record.dto.js";
-import { UpdateRecordDto } from "./dto/update-record.dto.js";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard.js";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseDatePipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { DiaryService } from './diary.service.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import { CreateRecordDto } from './dto/create-record.dto.js';
+import { UpdateRecordDto } from './dto/update-record.dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 
 @Controller('diary')
 @UseGuards(JwtAuthGuard)
 export class DiaryController {
-  constructor (private diary: DiaryService) {}
+  constructor(private diary: DiaryService) {}
 
   @Get('entries')
   findAllEntries(@CurrentUser() user: { id: string }) {
@@ -16,8 +26,11 @@ export class DiaryController {
   }
 
   @Get('records/:targetDate')
-  findAllEntryRevisions(@Param('targetDate') targetDate: string, @CurrentUser() user: { id: string }) {
-    return this.diary.findAllEntryRevisions(targetDate, user.id)
+  findAllEntryRevisions(
+    @Param('targetDate', ParseDatePipe) targetDate: string,
+    @CurrentUser() user: { id: string },
+  ) {
+    return this.diary.findAllEntryRevisions(targetDate, user.id);
   }
 
   @Post()
@@ -26,7 +39,11 @@ export class DiaryController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateRecordDto, @CurrentUser() user: { id: string }) {
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateRecordDto,
+    @CurrentUser() user: { id: string },
+  ) {
     return this.diary.update(id, dto, user.id);
   }
 

@@ -4,7 +4,7 @@
 
 ## Tech Stack
 
-- **Backend:** Nest.js, TypeScript, PostgreSQL, Prisma
+- **Backend:** Nest.js, TypeScript, Prisma, SQLite
 - **Frontend:** React, Vite, CSS, TypeScript
 
 ## Project Structure

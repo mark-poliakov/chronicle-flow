@@ -4,7 +4,7 @@ export default {
     'oxlint --max-warnings=0',
     () => 'npm run build',
   ],
-  '*.{json}': [
+  '*.json': [
     'prettier --write',
   ],
 };

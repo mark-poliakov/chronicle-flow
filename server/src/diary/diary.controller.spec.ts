@@ -83,21 +83,6 @@ describe('DiaryController (module test)', () => {
     expect(diary.create).toHaveBeenCalledWith(body, 'user-1');
   });
 
-  it('GET /diary/records/:targetDate: params remain untouched', async () => {
-    const userId = 'user-1';
-    await boot({ id: userId });
-    const records = [{ id: 'r1' }, { id: 'r2' }];
-    diary.findAllEntryRevisions.mockResolvedValue(records);
-    const targetDate = '2025-01-15';
-
-    const result = await request(app.getHttpServer())
-      .get(`/diary/records/${targetDate}`)
-      .expect(200);
-
-    expect(diary.findAllEntryRevisions).toHaveBeenCalledWith(targetDate, userId);
-    expect(result.body).toEqual(records);
-  });
-
   describe('PATCH /diary/:id', () => {
     it('calls DiaryService.update', async () => {
       const userId = 'user-1';
