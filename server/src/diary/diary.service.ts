@@ -17,13 +17,14 @@ export class DiaryService {
   }
 
   findAllEntryRevisions(targetDate: string, userId: string) {
-    this.logger.log(`find records: user=${userId} date=${targetDate}`, DiaryService.name);
-    return this.diary.findRecordsByDate(userId, this.normalizeDate(targetDate), 'asc');
+    const date = this.normalizeDate(targetDate);
+    this.logger.log(`find records: user=${userId} date=${date}`, DiaryService.name);
+    return this.diary.findRecordsByDate(userId, date, 'asc');
   }
 
   async create(dto: CreateRecordDto, userId: string) {
-    this.logger.log(`create record: user=${userId} date=${dto.targetDate}`, DiaryService.name);
     const date = this.normalizeDate(dto.targetDate);
+    this.logger.log(`create record: user=${userId} date=${date}`, DiaryService.name);
 
     const record = await this.diary.transaction(async (repo) => {
       let entry = await repo.findEntryByDate(userId, date);
@@ -80,6 +81,12 @@ export class DiaryService {
   private normalizeDate(targetDate: string) {
     const date = new Date(targetDate);
     date.setUTCHours(0, 0, 0, 0);
+    if (date.getUTCFullYear() > 9999) {
+      date.setUTCFullYear(9999);
+    }
+    if (date.getUTCFullYear() < 0) {
+      date.setUTCFullYear(0);
+    }
     return date.toISOString();
   }
 }

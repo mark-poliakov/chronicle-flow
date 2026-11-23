@@ -58,7 +58,7 @@ export class AuthService {
       this.logger.log(`user no longer exists, no data returned`, AuthService.name);
       throw new UnauthorizedException('Invalid credentials');
     }
-    return user;
+    return { id: user.id, email: user.email };
   }
 
   async signToken(userId: string, email: string) {
