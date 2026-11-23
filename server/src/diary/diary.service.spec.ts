@@ -29,6 +29,8 @@ describe('DiaryService', () => {
     createRecord: ReturnType<typeof vi.fn>;
     updateRecord: ReturnType<typeof vi.fn>;
     deleteRecord: ReturnType<typeof vi.fn>;
+    findRecordsByEntryId: ReturnType<typeof vi.fn>;
+    deleteEntry: ReturnType<typeof vi.fn>;
     transaction: (fn: (tx: typeof diary) => ReturnType<typeof vi.fn>) => ReturnType<typeof vi.fn>;
   };
 
@@ -49,6 +51,8 @@ describe('DiaryService', () => {
       createRecord: vi.fn(),
       updateRecord: vi.fn(),
       deleteRecord: vi.fn(),
+      findRecordsByEntryId: vi.fn(),
+      deleteEntry: vi.fn(),
       transaction: (
         fn: (tx: typeof diary) => ReturnType<typeof vi.fn>,
       ): ReturnType<typeof vi.fn> => {
@@ -92,7 +96,7 @@ describe('DiaryService', () => {
       );
     });
 
-    it('queries entry revisions of only the given user, oldest first', async () => {
+    it('queries entry records of only the given user, oldest first', async () => {
       const targetDate = '2025-01-15';
       const user = 'user-1';
       diary.findRecordsByDate.mockResolvedValue([]);
@@ -139,7 +143,7 @@ describe('DiaryService', () => {
   });
 
   describe('update', () => {
-    it('throws NotFoundException when revision does not exist or belongs to another user', async () => {
+    it('throws NotFoundException when record does not exist or belongs to another user', async () => {
       diary.findRecordOwnedByUser.mockResolvedValue(null);
 
       await expect(service.update('rev-x', { content: 'new' }, 'user-1')).rejects.toBeInstanceOf(
@@ -148,34 +152,46 @@ describe('DiaryService', () => {
 
       expect(diary.updateRecord).not.toHaveBeenCalled();
     });
-    it('updates and returns a revision', async () => {
-      const revisionId = 'rev-existing';
+    it('updates and returns a record', async () => {
+      const recordId = 'rev-existing';
       const content = 'edited';
       const dto = { content };
-      diary.findRecordOwnedByUser.mockResolvedValue({ id: revisionId });
-      diary.updateRecord.mockResolvedValue({ id: revisionId });
+      diary.findRecordOwnedByUser.mockResolvedValue({ id: recordId });
+      diary.updateRecord.mockResolvedValue({ id: recordId });
 
-      const result = await service.update(revisionId, dto, 'user-1');
-      expect(diary.findRecordOwnedByUser).toHaveBeenCalledWith('user-1', revisionId);
-      expect(diary.updateRecord).toHaveBeenCalledWith(revisionId, dto);
-      expect(result).toEqual({ id: revisionId });
+      const result = await service.update(recordId, dto, 'user-1');
+      expect(diary.findRecordOwnedByUser).toHaveBeenCalledWith('user-1', recordId);
+      expect(diary.updateRecord).toHaveBeenCalledWith(recordId, dto);
+      expect(result).toEqual({ id: recordId });
     });
   });
   describe('remove', () => {
-    it('throws NotFoundException when revision does not exist or belongs to another user', async () => {
+    it('throws NotFoundException when record does not exist or belongs to another user', async () => {
       diary.findRecordOwnedByUser.mockResolvedValue(null);
 
       await expect(service.remove('rev-x', 'user-1')).rejects.toBeInstanceOf(NotFoundException);
 
       expect(diary.deleteRecord).not.toHaveBeenCalled();
     });
-    it('removes existing revision', async () => {
-      const revisionId = 'rev-existing';
-      diary.findRecordOwnedByUser.mockResolvedValue({ id: revisionId });
+    it('removes existing record', async () => {
+      const recordId = 'rev-existing';
+      diary.findRecordOwnedByUser.mockResolvedValue({ id: recordId });
+      diary.findRecordsByEntryId.mockResolvedValue([{ id: 'another-record' }]);
 
-      await service.remove(revisionId, 'user-1');
+      await service.remove(recordId, 'user-1');
       expect(diary.findRecordOwnedByUser).toHaveBeenCalled();
-      expect(diary.deleteRecord).toHaveBeenCalledWith(revisionId);
+      expect(diary.deleteRecord).toHaveBeenCalledWith(recordId);
+      expect(diary.deleteEntry).not.toHaveBeenCalled();
+    });
+    it('deletes entry if it becomes empty', async () => {
+      const recordId = 'rev-existing';
+      const entryId = 'entry-almost-empty';
+      diary.findRecordOwnedByUser.mockResolvedValue({ id: recordId, entryId: entryId });
+      diary.findRecordsByEntryId.mockResolvedValue([]);
+
+      await service.remove(recordId, 'user-1');
+      expect(diary.deleteRecord).toHaveBeenCalled();
+      expect(diary.deleteEntry).toHaveBeenCalledWith(entryId);
     });
   });
 });

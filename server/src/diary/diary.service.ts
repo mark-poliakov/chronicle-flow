@@ -66,7 +66,15 @@ export class DiaryService {
       );
       throw new NotFoundException(`EntryRevision ${id} not found`);
     }
-    return this.diary.deleteRecord(id);
+
+    const entryId = record.entryId;
+    return await this.diary.transaction(async (repo) => {
+      const result = await repo.deleteRecord(id);
+      if ((await repo.findRecordsByEntryId(entryId)).length === 0) {
+        await repo.deleteEntry(entryId);
+      }
+      return result;
+    });
   }
 
   private normalizeDate(targetDate: string) {

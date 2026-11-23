@@ -38,6 +38,12 @@ export class DiaryRepository {
   deleteRecord(id: string) {
     return this.prisma.entryRevision.delete({ where: { id } });
   }
+  findRecordsByEntryId(entryId: string) {
+    return this.prisma.entryRevision.findMany({ where: { entryId } });
+  }
+  deleteEntry(id: string) {
+    return this.prisma.entry.delete({ where: { id } });
+  }
 
   transaction<T>(fn: (tx: DiaryRepository) => Promise<T>): Promise<T> {
     return this.prisma.$transaction((prismaTx) => {
