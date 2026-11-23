@@ -1,51 +1,68 @@
 import { Test } from '@nestjs/testing';
 import { DiaryService } from './diary.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
 import { NotFoundException } from '@nestjs/common';
 import { AppLoggerModule } from '../logger/app-logger.module.js';
+import { DiaryRepository } from './diary.repository.js';
+import { AppLogger } from '../logger/app-logger.service.js';
 
 const normalizeDate = (targetDate: string) => {
   const date = new Date(targetDate);
-  date.setUTCHours(0);
-  date.setUTCMinutes(0);
-  date.setUTCSeconds(0);
-  date.setUTCMilliseconds(0);
+  date.setUTCHours(0, 0, 0, 0);
   return date.toISOString();
 };
 
 describe('DiaryService', () => {
   let service: DiaryService;
-  let prisma: {
-    entry: {
-      findMany: ReturnType<typeof vi.fn>;
-      findFirst: ReturnType<typeof vi.fn>;
-      create: ReturnType<typeof vi.fn>;
-    };
-    entryRevision: {
-      findMany: ReturnType<typeof vi.fn>;
-      findUnique: ReturnType<typeof vi.fn>;
-      create: ReturnType<typeof vi.fn>;
-      update: ReturnType<typeof vi.fn>;
-      delete: ReturnType<typeof vi.fn>;
-    };
+  let logger: {
+    log: ReturnType<typeof vi.fn>;
+    warn: ReturnType<typeof vi.fn>;
+    error: ReturnType<typeof vi.fn>;
+    debug: ReturnType<typeof vi.fn>;
+    verbose: ReturnType<typeof vi.fn>;
+  };
+  let diary: {
+    findEntriesByUser: ReturnType<typeof vi.fn>;
+    findRecordsByDate: ReturnType<typeof vi.fn>;
+    findEntryByDate: ReturnType<typeof vi.fn>;
+    findRecordOwnedByUser: ReturnType<typeof vi.fn>;
+    createEntry: ReturnType<typeof vi.fn>;
+    createRecord: ReturnType<typeof vi.fn>;
+    updateRecord: ReturnType<typeof vi.fn>;
+    deleteRecord: ReturnType<typeof vi.fn>;
+    transaction: (fn: (tx: typeof diary) => ReturnType<typeof vi.fn>) => ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
-    prisma = {
-      entry: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
-      entryRevision: {
-        findMany: vi.fn(),
-        findUnique: vi.fn(),
-        create: vi.fn(),
-        update: vi.fn(),
-        delete: vi.fn(),
+    logger = {
+      log: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    };
+    diary = {
+      findEntriesByUser: vi.fn(),
+      findRecordsByDate: vi.fn(),
+      findEntryByDate: vi.fn(),
+      findRecordOwnedByUser: vi.fn(),
+      createEntry: vi.fn(),
+      createRecord: vi.fn(),
+      updateRecord: vi.fn(),
+      deleteRecord: vi.fn(),
+      transaction: (
+        fn: (tx: typeof diary) => ReturnType<typeof vi.fn>,
+      ): ReturnType<typeof vi.fn> => {
+        return fn(diary);
       },
     };
 
     const moduleRef = await Test.createTestingModule({
-      providers: [DiaryService, { provide: PrismaService, useValue: prisma }],
+      providers: [DiaryService, { provide: DiaryRepository, useValue: diary }],
       imports: [AppLoggerModule],
-    }).compile();
+    })
+      .overrideProvider(AppLogger)
+      .useValue(logger)
+      .compile();
 
     service = moduleRef.get(DiaryService);
   });
@@ -53,50 +70,37 @@ describe('DiaryService', () => {
   describe('findAllEntries', () => {
     it('queries entries of only the given user, newest first', async () => {
       const rows = [{ id: 'e1' }, { id: 'e2' }];
-      prisma.entry.findMany.mockResolvedValue(rows);
+      diary.findEntriesByUser.mockResolvedValue(rows);
 
       const result = await service.findAllEntries('user-1');
 
-      expect(prisma.entry.findMany).toHaveBeenCalledWith({
-        where: { userId: 'user-1' },
-        orderBy: { targetDate: 'desc' },
-      });
+      expect(diary.findEntriesByUser).toHaveBeenCalledWith('user-1', expect.anything());
       expect(result).toBe(rows);
     });
   });
 
   describe('findAllEntryRevisions', () => {
     it('normalises the target date before querying', async () => {
-      prisma.entryRevision.findMany.mockResolvedValue([]);
+      diary.findRecordsByDate.mockResolvedValue([]);
       const targetDate = '2025-01-15T10:30:15.500Z';
       const expectedDate = normalizeDate(targetDate);
       await service.findAllEntryRevisions(targetDate, 'user-1');
-      expect(prisma.entryRevision.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            entry: expect.objectContaining({ targetDate: expectedDate }),
-          }),
-        }),
+      expect(diary.findRecordsByDate).toHaveBeenCalledWith(
+        'user-1',
+        expectedDate,
+        expect.anything(),
       );
     });
 
     it('queries entry revisions of only the given user, oldest first', async () => {
       const targetDate = '2025-01-15';
       const user = 'user-1';
-      prisma.entryRevision.findMany.mockResolvedValue([]);
+      diary.findRecordsByDate.mockResolvedValue([]);
 
       await service.findAllEntryRevisions(targetDate, user);
 
       const expectedDate = normalizeDate(targetDate);
-      expect(prisma.entryRevision.findMany).toHaveBeenCalledWith({
-        where: {
-          entry: {
-            targetDate: expectedDate,
-            userId: user,
-          },
-        },
-        orderBy: { createdAt: 'asc' },
-      });
+      expect(diary.findRecordsByDate).toHaveBeenCalledWith(user, expectedDate, 'asc');
     });
   });
 
@@ -107,91 +111,71 @@ describe('DiaryService', () => {
     const dto = { targetDate, content };
 
     it('creates new entry when target day is empty', async () => {
-      prisma.entry.findFirst.mockResolvedValue(null);
-      prisma.entry.create.mockResolvedValue({ id: 'entry-new' });
-      prisma.entryRevision.create.mockResolvedValue({ id: 'rev-new' });
+      diary.findEntryByDate.mockResolvedValue(null);
+      diary.createEntry.mockResolvedValue({ id: 'entry-new' });
+      diary.createRecord.mockResolvedValue({ id: 'rev-new', content: content });
 
       const result = await service.create(dto, user);
 
       const expectedDate = normalizeDate(targetDate);
-      expect(prisma.entry.findFirst).toHaveBeenCalledWith({
-        where: { userId: user, targetDate: expectedDate },
-      });
-      expect(prisma.entry.create).toHaveBeenCalledWith({
-        data: { userId: user, targetDate: expectedDate },
-      });
-      expect(prisma.entryRevision.create).toHaveBeenCalledWith({
-        data: { content, entryId: 'entry-new' },
-      });
-      expect(result).toEqual({ id: 'rev-new' });
+      expect(diary.findEntryByDate).toHaveBeenCalledWith(user, expectedDate);
+      expect(diary.createEntry).toHaveBeenCalledWith(user, expectedDate);
+      expect(diary.createRecord).toHaveBeenCalledWith('entry-new', content);
+      expect(result).toEqual({ id: 'rev-new', content });
     });
-    it('reuses existing entry when one already exists for that day', async () => {
-      prisma.entry.findFirst.mockResolvedValue({ id: 'entry-existing' });
-      prisma.entryRevision.create.mockResolvedValue({ id: 'rev-new' });
 
-      const dto = { targetDate: '2025-01-15', content: 'hello' };
+    it('reuses existing entry when one already exists for that day', async () => {
+      diary.findEntryByDate.mockResolvedValue({ id: 'entry-existing' });
+      diary.createRecord.mockResolvedValue({ id: 'rev-new', content: content });
+
       const result = await service.create(dto, 'user-1');
 
       const expectedDate = normalizeDate(dto.targetDate);
-      expect(prisma.entry.findFirst).toHaveBeenCalledWith({
-        where: { userId: 'user-1', targetDate: expectedDate },
-      });
-      expect(prisma.entry.create).not.toHaveBeenCalled();
-      expect(prisma.entryRevision.create).toHaveBeenCalledWith({
-        data: { content: 'hello', entryId: 'entry-existing' },
-      });
-      expect(result).toEqual({ id: 'rev-new' });
+      expect(diary.findEntryByDate).toHaveBeenCalledWith(user, expectedDate);
+      expect(diary.createEntry).not.toHaveBeenCalled();
+      expect(diary.createRecord).toHaveBeenCalledWith('entry-existing', 'hello');
+      expect(result).toEqual({ id: 'rev-new', content });
     });
   });
 
   describe('update', () => {
     it('throws NotFoundException when revision does not exist or belongs to another user', async () => {
-      prisma.entryRevision.findUnique.mockResolvedValue(null);
+      diary.findRecordOwnedByUser.mockResolvedValue(null);
 
       await expect(service.update('rev-x', { content: 'new' }, 'user-1')).rejects.toBeInstanceOf(
         NotFoundException,
       );
 
-      expect(prisma.entryRevision.update).not.toHaveBeenCalled();
+      expect(diary.updateRecord).not.toHaveBeenCalled();
     });
     it('updates and returns a revision', async () => {
       const revisionId = 'rev-existing';
       const content = 'edited';
       const dto = { content };
-      prisma.entryRevision.findUnique.mockResolvedValue({ id: revisionId });
-      prisma.entryRevision.update.mockResolvedValue({ id: revisionId });
+      diary.findRecordOwnedByUser.mockResolvedValue({ id: revisionId });
+      diary.updateRecord.mockResolvedValue({ id: revisionId });
 
       const result = await service.update(revisionId, dto, 'user-1');
-      expect(prisma.entryRevision.findUnique).toHaveBeenCalledWith({
-        where: {
-          id: revisionId,
-          entry: { userId: 'user-1' },
-        },
-      });
-      expect(prisma.entryRevision.update).toHaveBeenCalledWith({
-        where: { id: revisionId },
-        data: dto,
-      });
+      expect(diary.findRecordOwnedByUser).toHaveBeenCalledWith('user-1', revisionId);
+      expect(diary.updateRecord).toHaveBeenCalledWith(revisionId, dto);
       expect(result).toEqual({ id: revisionId });
     });
   });
   describe('remove', () => {
     it('throws NotFoundException when revision does not exist or belongs to another user', async () => {
-      prisma.entryRevision.findUnique.mockResolvedValue(null);
+      diary.findRecordOwnedByUser.mockResolvedValue(null);
 
       await expect(service.remove('rev-x', 'user-1')).rejects.toBeInstanceOf(NotFoundException);
 
-      expect(prisma.entryRevision.delete).not.toHaveBeenCalled();
+      expect(diary.deleteRecord).not.toHaveBeenCalled();
     });
     it('removes existing revision', async () => {
       const revisionId = 'rev-existing';
-      prisma.entryRevision.findUnique.mockResolvedValue({ id: revisionId });
+      diary.findRecordOwnedByUser.mockResolvedValue({ id: revisionId });
 
       await service.remove(revisionId, 'user-1');
-      expect(prisma.entryRevision.findUnique).toHaveBeenCalled();
-      expect(prisma.entryRevision.delete).toHaveBeenCalledWith({
-        where: { id: revisionId },
-      });
+      expect(diary.findRecordOwnedByUser).toHaveBeenCalled();
+      expect(diary.deleteRecord).toHaveBeenCalledWith(revisionId);
     });
   });
 });
