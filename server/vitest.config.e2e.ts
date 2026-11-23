@@ -6,6 +6,10 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['**/*.e2e-spec.ts'],
+    include: ['test/e2e/**/*.e2e-spec.ts'],
+    setupFiles: ['./test/e2e/global-setup.ts'],
+    pool: 'forks',
+    fileParallelism: false,
+    testTimeout: 20_000,
   },
 });
